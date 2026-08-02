@@ -1,1 +1,1731 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="サブスクの更新日と支払額を管理し、節約候補を提案するアプリ"
+  >
+
+  <meta name="theme-color" content="#5b4cf0">
+
+  <title>ムダゼロ v2</title>
+
+  <style>
+    :root {
+      --background: #f4f6fb;
+      --surface: #ffffff;
+      --surface-soft: rgba(255, 255, 255, 0.88);
+
+      --text: #111827;
+      --muted: #667085;
+      --border: rgba(17, 24, 39, 0.08);
+
+      --primary: #5b4cf0;
+      --primary-dark: #4338ca;
+      --primary-soft: #eeecff;
+
+      --green: #128653;
+      --green-soft: #eaf9f1;
+
+      --orange: #c66a12;
+      --orange-soft: #fff5e8;
+
+      --red: #cf2748;
+      --red-soft: #fff0f3;
+
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+
+      --shadow:
+        0 18px 48px rgba(38, 48, 85, 0.08),
+        0 3px 10px rgba(38, 48, 85, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans JP",
+        sans-serif;
+
+      color: var(--text);
+
+      background:
+        radial-gradient(
+          circle at 95% 0%,
+          rgba(124, 58, 237, 0.12),
+          transparent 34%
+        ),
+        var(--background);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .container {
+      width: min(720px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+
+      padding:
+        calc(32px + env(safe-area-inset-top))
+        20px
+        82px;
+
+      color: #ffffff;
+
+      background:
+        radial-gradient(
+          circle at 88% 12%,
+          rgba(255, 255, 255, 0.24),
+          transparent 26%
+        ),
+        linear-gradient(
+          135deg,
+          #3f36d9 0%,
+          #7142e7 55%,
+          #9a4ed8 100%
+        );
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+
+      width: 190px;
+      height: 190px;
+
+      right: -75px;
+      bottom: -100px;
+
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+
+      width: 90px;
+      height: 90px;
+
+      right: 70px;
+      top: 28px;
+
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .version-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 31px;
+      padding: 6px 11px;
+
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+
+      color: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.12);
+
+      font-size: 12px;
+      font-weight: 800;
+
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+
+      font-size: clamp(36px, 10vw, 50px);
+      font-weight: 900;
+
+      letter-spacing: -0.05em;
+    }
+
+    .header-description {
+      max-width: 530px;
+      margin: 0;
+
+      font-size: 15px;
+      line-height: 1.75;
+
+      opacity: 0.92;
+    }
+
+    main {
+      position: relative;
+      z-index: 2;
+
+      margin-top: -46px;
+      padding-bottom:
+        calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .card {
+      margin-bottom: 16px;
+      padding: 20px;
+
+      border: 1px solid var(--border);
+      border-radius: 24px;
+
+      background: var(--surface-soft);
+
+      box-shadow: var(--shadow);
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      position: relative;
+      overflow: hidden;
+
+      min-height: 128px;
+      margin-bottom: 0;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .summary-card::after {
+      content: "";
+      position: absolute;
+
+      width: 78px;
+      height: 78px;
+
+      right: -24px;
+      bottom: -28px;
+
+      border-radius: 50%;
+      background: var(--primary-soft);
+    }
+
+    .summary-card.green-card::after {
+      background: var(--green-soft);
+    }
+
+    .summary-card.blue-card::after {
+      background: var(--blue-soft);
+    }
+
+    .summary-label {
+      position: relative;
+      z-index: 1;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+
+    .summary-value {
+      position: relative;
+      z-index: 1;
+
+      font-size: clamp(26px, 7vw, 34px);
+      font-weight: 900;
+
+      letter-spacing: -0.045em;
+    }
+
+    .green-text {
+      color: var(--green);
+    }
+
+    .section-title {
+      margin: 0 0 18px;
+
+      font-size: 22px;
+      font-weight: 900;
+
+      letter-spacing: -0.025em;
+    }
+
+    .suggestion-card {
+      position: relative;
+      overflow: hidden;
+
+      border-color: rgba(18, 134, 83, 0.18);
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(234, 249, 241, 0.98),
+          rgba(255, 255, 255, 0.96)
+        );
+    }
+
+    .suggestion-card::after {
+      content: "✦";
+      position: absolute;
+
+      right: 18px;
+      top: 13px;
+
+      color: rgba(18, 134, 83, 0.18);
+      font-size: 38px;
+    }
+
+    .suggestion-eyebrow {
+      margin-bottom: 10px;
+
+      color: var(--green);
+
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+
+    .suggestion-heading {
+      max-width: 88%;
+      margin: 0 0 10px;
+
+      font-size: 21px;
+      font-weight: 900;
+      line-height: 1.45;
+
+      letter-spacing: -0.025em;
+    }
+
+    .suggestion-description {
+      margin: 0;
+
+      color: var(--muted);
+
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .suggestion-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+
+      margin-top: 18px;
+    }
+
+    .metric-box {
+      padding: 13px;
+
+      border: 1px solid rgba(18, 134, 83, 0.1);
+      border-radius: 15px;
+
+      background: rgba(255, 255, 255, 0.68);
+    }
+
+    .metric-label {
+      margin-bottom: 5px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .metric-value {
+      color: var(--green);
+
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 2px;
+    }
+
+    label {
+      display: block;
+
+      margin: 16px 0 7px;
+
+      color: #344054;
+
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 52px;
+
+      padding: 12px 14px;
+
+      border: 1px solid #dfe3ec;
+      border-radius: 15px;
+
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.98);
+
+      font-size: 16px;
+
+      transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+
+      background-image:
+        linear-gradient(
+          45deg,
+          transparent 50%,
+          #667085 50%
+        ),
+        linear-gradient(
+          135deg,
+          #667085 50%,
+          transparent 50%
+        );
+
+      background-position:
+        calc(100% - 19px) 22px,
+        calc(100% - 14px) 22px;
+
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+
+      border-color: var(--primary);
+
+      box-shadow:
+        0 0 0 4px rgba(91, 76, 240, 0.12);
+    }
+
+    .button {
+      width: 100%;
+      min-height: 52px;
+
+      border: 0;
+      border-radius: 15px;
+
+      font-weight: 900;
+
+      transition:
+        transform 0.15s,
+        opacity 0.15s,
+        box-shadow 0.15s;
+    }
+
+    .button:active {
+      transform: scale(0.98);
+    }
+
+    .primary-button {
+      margin-top: 20px;
+
+      color: #ffffff;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--primary),
+          #7857ef
+        );
+
+      box-shadow:
+        0 12px 26px rgba(91, 76, 240, 0.24);
+    }
+
+    .subscription-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .subscription-item {
+      position: relative;
+      overflow: hidden;
+
+      padding: 19px;
+
+      border: 1px solid var(--border);
+      border-radius: 21px;
+
+      background: var(--surface);
+
+      box-shadow:
+        0 10px 26px rgba(35, 45, 80, 0.05);
+    }
+
+    .subscription-item::before {
+      content: "";
+      position: absolute;
+
+      left: 0;
+      top: 0;
+
+      width: 5px;
+      height: 100%;
+
+      background:
+        linear-gradient(
+          180deg,
+          var(--primary),
+          #9b5de5
+        );
+    }
+
+    .subscription-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .subscription-icon {
+      flex: 0 0 auto;
+
+      width: 46px;
+      height: 46px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 15px;
+
+      color: var(--primary);
+      background: var(--primary-soft);
+
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .subscription-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .subscription-name {
+      overflow-wrap: anywhere;
+
+      margin: 1px 0 5px;
+
+      font-size: 20px;
+      font-weight: 900;
+
+      letter-spacing: -0.025em;
+    }
+
+    .subscription-price {
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .annual-cost {
+      margin-top: 3px;
+
+      color: var(--text);
+
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .renewal-alert {
+      margin: 15px 0 0;
+      padding: 12px 13px;
+
+      border-radius: 14px;
+
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .renewal-normal {
+      color: #475467;
+      background: #f1f4f8;
+    }
+
+    .renewal-soon {
+      color: var(--orange);
+      background: var(--orange-soft);
+    }
+
+    .renewal-urgent {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .renewal-date {
+      margin-top: 8px;
+
+      color: var(--muted);
+
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+
+      margin-top: 16px;
+    }
+
+    .action-button {
+      min-height: 48px;
+
+      border: 0;
+      border-radius: 14px;
+
+      font-size: 14px;
+      font-weight: 900;
+
+      transition:
+        transform 0.15s,
+        opacity 0.15s;
+    }
+
+    .action-button:active {
+      transform: scale(0.98);
+    }
+
+    .complete-button {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .delete-button {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .empty-state {
+      padding: 38px 12px;
+
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      display: block;
+      margin-bottom: 10px;
+
+      font-size: 34px;
+    }
+
+    .empty-title {
+      margin-bottom: 5px;
+
+      color: var(--text);
+
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .empty-description {
+      margin: 0;
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 999;
+
+      left: 50%;
+      bottom:
+        calc(22px + env(safe-area-inset-bottom));
+
+      width: min(
+        calc(100% - 32px),
+        430px
+      );
+
+      padding: 13px 16px;
+
+      border-radius: 15px;
+
+      color: #ffffff;
+      background: rgba(17, 24, 39, 0.92);
+
+      text-align: center;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      box-shadow:
+        0 18px 40px rgba(17, 24, 39, 0.24);
+
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+
+      transform: translate(-50%, 120px);
+      opacity: 0;
+
+      pointer-events: none;
+
+      transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    .footer-note {
+      padding: 8px 8px 0;
+
+      color: var(--muted);
+
+      text-align: center;
+
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding-bottom: 74px;
+      }
+
+      .summary-card {
+        min-height: 116px;
+        padding: 17px;
+      }
+
+      .summary-value {
+        font-size: 25px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .suggestion-heading {
+        font-size: 18px;
+      }
+
+      .subscription-item {
+        padding: 17px;
+      }
+
+      .subscription-icon {
+        width: 42px;
+        height: 42px;
+
+        border-radius: 13px;
+
+        font-size: 20px;
+      }
+
+      .subscription-name {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 350px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions,
+      .suggestion-metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container header-content">
+      <div class="header-top">
+        <div class="version-badge">
+          MUDZERO v2
+        </div>
+      </div>
+
+      <h1>ムダゼロ</h1>
+
+      <p class="header-description">
+        サブスクの更新忘れを防ぎ、
+        今日見直すべき支出を分かりやすく提案します。
+      </p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="summary-grid">
+      <article class="card summary-card">
+        <div class="summary-label">
+          毎月の支払額
+        </div>
+
+        <div
+          id="monthlyTotal"
+          class="summary-value"
+        >
+          ¥0
+        </div>
+      </article>
+
+      <article class="card summary-card">
+        <div class="summary-label">
+          年間の支払額
+        </div>
+
+        <div
+          id="yearlyTotal"
+          class="summary-value"
+        >
+          ¥0
+        </div>
+      </article>
+
+      <article class="card summary-card blue-card">
+        <div class="summary-label">
+          登録サービス
+        </div>
+
+        <div
+          id="subscriptionCount"
+          class="summary-value"
+        >
+          0件
+        </div>
+      </article>
+
+      <article class="card summary-card green-card">
+        <div class="summary-label">
+          節約できた金額
+        </div>
+
+        <div
+          id="savedTotal"
+          class="summary-value green-text"
+        >
+          ¥0
+        </div>
+      </article>
+    </section>
+
+    <section class="card suggestion-card">
+      <div class="suggestion-eyebrow">
+        今日の節約提案
+      </div>
+
+      <h2
+        id="suggestionHeading"
+        class="suggestion-heading"
+      >
+        サブスクを登録してください
+      </h2>
+
+      <p
+        id="suggestionDescription"
+        class="suggestion-description"
+      >
+        登録すると、年間コストが高いサービスから
+        見直し候補を提案します。
+      </p>
+
+      <div
+        id="suggestionMetrics"
+        class="suggestion-metrics"
+        hidden
+      >
+        <div class="metric-box">
+          <div class="metric-label">
+            年間節約額
+          </div>
+
+          <div
+            id="suggestionSaving"
+            class="metric-value"
+          >
+            ¥0
+          </div>
+        </div>
+
+        <div class="metric-box">
+          <div class="metric-label">
+            更新まで
+          </div>
+
+          <div
+            id="suggestionDays"
+            class="metric-value"
+          >
+            -
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">
+        サブスクを登録
+      </h2>
+
+      <form
+        id="subscriptionForm"
+        class="form-grid"
+      >
+        <label for="name">
+          サービス名
+        </label>
+
+        <input
+          id="name"
+          type="text"
+          maxlength="50"
+          placeholder="例：Netflix"
+          autocomplete="off"
+          required
+        >
+
+        <label for="price">
+          料金
+        </label>
+
+        <input
+          id="price"
+          type="number"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          placeholder="例：1490"
+          required
+        >
+
+        <label for="cycle">
+          支払い周期
+        </label>
+
+        <select id="cycle">
+          <option value="monthly">
+            月額
+          </option>
+
+          <option value="yearly">
+            年額
+          </option>
+        </select>
+
+        <label for="renewalDate">
+          次回更新日
+        </label>
+
+        <input
+          id="renewalDate"
+          type="date"
+          required
+        >
+
+        <button
+          class="button primary-button"
+          type="submit"
+        >
+          サブスクを登録する
+        </button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">
+        登録中のサブスク
+      </h2>
+
+      <div
+        id="subscriptionList"
+        class="subscription-list"
+      ></div>
+    </section>
+
+    <div class="footer-note">
+      登録内容はこのブラウザ内に保存されます。
+      ブラウザのデータを消すと登録内容も削除されます。
+    </div>
+  </main>
+
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "mudazero-data";
+
+    let subscriptions = loadSubscriptions();
+
+    const form =
+      document.getElementById("subscriptionForm");
+
+    const list =
+      document.getElementById("subscriptionList");
+
+    const toast =
+      document.getElementById("toast");
+
+    let toastTimer = null;
+
+    function loadSubscriptions() {
+      try {
+        const saved =
+          localStorage.getItem(STORAGE_KEY);
+
+        const parsed =
+          saved ? JSON.parse(saved) : [];
+
+        return Array.isArray(parsed)
+          ? parsed
+          : [];
+      } catch (error) {
+        console.error(
+          "保存データを読み込めませんでした。",
+          error
+        );
+
+        return [];
+      }
+    }
+
+    function saveSubscriptions() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(subscriptions)
+        );
+      } catch (error) {
+        console.error(
+          "データを保存できませんでした。",
+          error
+        );
+
+        showToast(
+          "データを保存できませんでした"
+        );
+      }
+    }
+
+    function createId() {
+      if (
+        window.crypto &&
+        typeof crypto.randomUUID === "function"
+      ) {
+        return crypto.randomUUID();
+      }
+
+      return (
+        String(Date.now()) +
+        "-" +
+        Math.random().toString(16).slice(2)
+      );
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatYen(value) {
+      return new Intl.NumberFormat(
+        "ja-JP",
+        {
+          style: "currency",
+          currency: "JPY",
+          maximumFractionDigits: 0
+        }
+      ).format(
+        Math.round(value)
+      );
+    }
+
+    function getYearlyPrice(item) {
+      return item.cycle === "monthly"
+        ? Number(item.price) * 12
+        : Number(item.price);
+    }
+
+    function getMonthlyPrice(item) {
+      return item.cycle === "monthly"
+        ? Number(item.price)
+        : Number(item.price) / 12;
+    }
+
+    function getDaysUntil(dateString) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const renewalDate =
+        new Date(dateString + "T00:00:00");
+
+      return Math.ceil(
+        (
+          renewalDate.getTime() -
+          today.getTime()
+        ) /
+        (
+          1000 *
+          60 *
+          60 *
+          24
+        )
+      );
+    }
+
+    function getRenewalAlert(dateString) {
+      const days =
+        getDaysUntil(dateString);
+
+      if (days < 0) {
+        return {
+          text:
+            Math.abs(days) +
+            "日前に更新日を過ぎています",
+          shortText: "期限経過",
+          className: "renewal-urgent"
+        };
+      }
+
+      if (days === 0) {
+        return {
+          text: "本日が更新日です",
+          shortText: "本日",
+          className: "renewal-urgent"
+        };
+      }
+
+      if (days <= 3) {
+        return {
+          text:
+            "更新まであと" +
+            days +
+            "日",
+          shortText:
+            "あと" +
+            days +
+            "日",
+          className: "renewal-urgent"
+        };
+      }
+
+      if (days <= 7) {
+        return {
+          text:
+            "更新まであと" +
+            days +
+            "日",
+          shortText:
+            "あと" +
+            days +
+            "日",
+          className: "renewal-soon"
+        };
+      }
+
+      return {
+        text:
+          "更新まであと" +
+          days +
+          "日",
+        shortText:
+          "あと" +
+          days +
+          "日",
+        className: "renewal-normal"
+      };
+    }
+
+    function getServiceIcon(name) {
+      const normalized =
+        String(name).toLowerCase();
+
+      if (
+        normalized.includes("netflix") ||
+        normalized.includes("動画") ||
+        normalized.includes("disney") ||
+        normalized.includes("hulu")
+      ) {
+        return "🎬";
+      }
+
+      if (
+        normalized.includes("spotify") ||
+        normalized.includes("音楽") ||
+        normalized.includes("music")
+      ) {
+        return "🎵";
+      }
+
+      if (
+        normalized.includes("chatgpt") ||
+        normalized.includes("ai")
+      ) {
+        return "✦";
+      }
+
+      if (
+        normalized.includes("ゲーム") ||
+        normalized.includes("nintendo") ||
+        normalized.includes("playstation")
+      ) {
+        return "🎮";
+      }
+
+      if (
+        normalized.includes("cloud") ||
+        normalized.includes("icloud") ||
+        normalized.includes("ストレージ")
+      ) {
+        return "☁️";
+      }
+
+      if (
+        normalized.includes("amazon") ||
+        normalized.includes("prime")
+      ) {
+        return "📦";
+      }
+
+      return "◈";
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+
+    function renderSummary() {
+      const active =
+        subscriptions.filter(
+          item => !item.cancelled
+        );
+
+      const cancelled =
+        subscriptions.filter(
+          item => item.cancelled
+        );
+
+      const monthlyTotal =
+        active.reduce(
+          (total, item) =>
+            total + getMonthlyPrice(item),
+          0
+        );
+
+      const yearlyTotal =
+        active.reduce(
+          (total, item) =>
+            total + getYearlyPrice(item),
+          0
+        );
+
+      const savedTotal =
+        cancelled.reduce(
+          (total, item) =>
+            total + getYearlyPrice(item),
+          0
+        );
+
+      document
+        .getElementById("monthlyTotal")
+        .textContent =
+          formatYen(monthlyTotal);
+
+      document
+        .getElementById("yearlyTotal")
+        .textContent =
+          formatYen(yearlyTotal);
+
+      document
+        .getElementById("subscriptionCount")
+        .textContent =
+          active.length + "件";
+
+      document
+        .getElementById("savedTotal")
+        .textContent =
+          formatYen(savedTotal);
+    }
+
+    function renderSuggestion() {
+      const active =
+        subscriptions.filter(
+          item => !item.cancelled
+        );
+
+      const heading =
+        document.getElementById(
+          "suggestionHeading"
+        );
+
+      const description =
+        document.getElementById(
+          "suggestionDescription"
+        );
+
+      const metrics =
+        document.getElementById(
+          "suggestionMetrics"
+        );
+
+      if (active.length === 0) {
+        heading.textContent =
+          "サブスクを登録してください";
+
+        description.textContent =
+          "登録すると、年間コストが高いサービスから見直し候補を提案します。";
+
+        metrics.hidden = true;
+
+        return;
+      }
+
+      const suggestion =
+        [...active].sort(
+          (a, b) => {
+            const aDays =
+              getDaysUntil(
+                a.renewalDate
+              );
+
+            const bDays =
+              getDaysUntil(
+                b.renewalDate
+              );
+
+            const aUrgency =
+              Math.max(
+                0,
+                31 - aDays
+              ) * 500;
+
+            const bUrgency =
+              Math.max(
+                0,
+                31 - bDays
+              ) * 500;
+
+            const aScore =
+              getYearlyPrice(a) +
+              aUrgency;
+
+            const bScore =
+              getYearlyPrice(b) +
+              bUrgency;
+
+            return bScore - aScore;
+          }
+        )[0];
+
+      const renewal =
+        getRenewalAlert(
+          suggestion.renewalDate
+        );
+
+      heading.textContent =
+        suggestion.name +
+        "を見直しませんか？";
+
+      description.textContent =
+        "年間コストと更新日の近さから、今日の見直し候補として選びました。";
+
+      document
+        .getElementById("suggestionSaving")
+        .textContent =
+          formatYen(
+            getYearlyPrice(suggestion)
+          );
+
+      document
+        .getElementById("suggestionDays")
+        .textContent =
+          renewal.shortText;
+
+      metrics.hidden = false;
+    }
+
+    function renderSubscriptionList() {
+      const active =
+        subscriptions
+          .filter(
+            item => !item.cancelled
+          )
+          .sort(
+            (a, b) =>
+              new Date(a.renewalDate) -
+              new Date(b.renewalDate)
+          );
+
+      list.innerHTML = "";
+
+      if (active.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">🧾</span>
+
+            <div class="empty-title">
+              まだ登録されていません
+            </div>
+
+            <p class="empty-description">
+              契約中のサブスクを登録すると、
+              更新日と節約できる金額を確認できます。
+            </p>
+          </div>
+        `;
+
+        return;
+      }
+
+      active.forEach(item => {
+        const renewal =
+          getRenewalAlert(
+            item.renewalDate
+          );
+
+        const article =
+          document.createElement("article");
+
+        article.className =
+          "subscription-item";
+
+        article.innerHTML = `
+          <div class="subscription-top">
+            <div class="subscription-icon">
+              ${getServiceIcon(item.name)}
+            </div>
+
+            <div class="subscription-main">
+              <div class="subscription-name">
+                ${escapeHtml(item.name)}
+              </div>
+
+              <div class="subscription-price">
+                ${
+                  item.cycle === "monthly"
+                    ? "月額"
+                    : "年額"
+                }
+                ${formatYen(item.price)}
+              </div>
+
+              <div class="annual-cost">
+                年間コスト：
+                ${formatYen(
+                  getYearlyPrice(item)
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="renewal-alert ${renewal.className}"
+          >
+            ${renewal.text}
+          </div>
+
+          <div class="renewal-date">
+            次回更新日：
+            ${escapeHtml(item.renewalDate)}
+          </div>
+
+          <div class="actions">
+            <button
+              class="
+                action-button
+                complete-button
+              "
+              type="button"
+              data-action="cancel"
+              data-id="${escapeHtml(item.id)}"
+            >
+              解約済みにする
+            </button>
+
+            <button
+              class="
+                action-button
+                delete-button
+              "
+              type="button"
+              data-action="delete"
+              data-id="${escapeHtml(item.id)}"
+            >
+              削除
+            </button>
+          </div>
+        `;
+
+        list.appendChild(article);
+      });
+    }
+
+    function render() {
+      renderSummary();
+      renderSuggestion();
+      renderSubscriptionList();
+    }
+
+    function cancelSubscription(id) {
+      const item =
+        subscriptions.find(
+          subscription =>
+            subscription.id === id
+        );
+
+      if (!item) {
+        return;
+      }
+
+      const confirmed =
+        confirm(
+          item.name +
+          "を解約済みにしますか？"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      item.cancelled = true;
+      item.cancelledAt =
+        new Date().toISOString();
+
+      saveSubscriptions();
+      render();
+
+      showToast(
+        item.name +
+        "を解約済みにしました"
+      );
+    }
+
+    function deleteSubscription(id) {
+      const item =
+        subscriptions.find(
+          subscription =>
+            subscription.id === id
+        );
+
+      if (!item) {
+        return;
+      }
+
+      const confirmed =
+        confirm(
+          item.name +
+          "を完全に削除しますか？"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      subscriptions =
+        subscriptions.filter(
+          subscription =>
+            subscription.id !== id
+        );
+
+      saveSubscriptions();
+      render();
+
+      showToast(
+        item.name +
+        "を削除しました"
+      );
+    }
+
+    form.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+
+        const name =
+          document
+            .getElementById("name")
+            .value
+            .trim();
+
+        const price =
+          Number(
+            document
+              .getElementById("price")
+              .value
+          );
+
+        const cycle =
+          document
+            .getElementById("cycle")
+            .value;
+
+        const renewalDate =
+          document
+            .getElementById("renewalDate")
+            .value;
+
+        if (
+          !name ||
+          !Number.isFinite(price) ||
+          price <= 0 ||
+          !renewalDate
+        ) {
+          alert(
+            "サービス名、料金、更新日を確認してください。"
+          );
+
+          return;
+        }
+
+        subscriptions.push({
+          id: createId(),
+          name,
+          price,
+          cycle,
+          renewalDate,
+          cancelled: false,
+          createdAt:
+            new Date().toISOString()
+        });
+
+        saveSubscriptions();
+
+        form.reset();
+        setDefaultDate();
+        render();
+
+        showToast(
+          name +
+          "を登録しました"
+        );
+      }
+    );
+
+    list.addEventListener(
+      "click",
+      event => {
+        const button =
+          event.target.closest(
+            "button[data-action]"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        const id =
+          button.dataset.id;
+
+        const action =
+          button.dataset.action;
+
+        if (action === "cancel") {
+          cancelSubscription(id);
+        }
+
+        if (action === "delete") {
+          deleteSubscription(id);
+        }
+      }
+    );
+
+    function setDefaultDate() {
+      const date = new Date();
+
+      date.setMonth(
+        date.getMonth() + 1
+      );
+
+      document
+        .getElementById("renewalDate")
+        .value =
+          date
+            .toISOString()
+            .split("T")[0];
+    }
+
+    setDefaultDate();
+    render();
+  </script>
+</body>
+</html>
