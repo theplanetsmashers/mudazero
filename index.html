@@ -1,1 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ムダゼロ</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans JP", sans-serif;
+      background: #f5f7fb;
+      color: #182033;
+    }
+
+    header {
+      padding: 32px 20px 50px;
+      color: white;
+      background: linear-gradient(135deg, #4338ca, #7c3aed);
+    }
+
+    .container {
+      width: min(720px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    main {
+      margin-top: -26px;
+      padding-bottom: 60px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(30, 40, 70, 0.09);
+      margin-bottom: 16px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .label {
+      color: #747d91;
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .green {
+      color: #15803d;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 13px 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 11px;
+      font-size: 16px;
+    }
+
+    input,
+    select {
+      border: 1px solid #dce1eb;
+      padding: 10px 12px;
+      background: white;
+    }
+
+    button {
+      border: 0;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary {
+      margin-top: 16px;
+      background: #4f46e5;
+      color: white;
+    }
+
+    .suggestion {
+      border: 1px solid #86efac;
+      background: #ecfdf3;
+    }
+
+    .suggestion-title {
+      color: #15803d;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .subscription {
+      padding: 16px;
+      border: 1px solid #e1e5ed;
+      border-radius: 14px;
+      margin-top: 10px;
+    }
+
+    .subscription-name {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .muted {
+      color: #737d91;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .delete {
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .done {
+      background: #ecfdf3;
+      color: #15803d;
+    }
+
+    .empty {
+      text-align: center;
+      color: #737d91;
+      padding: 24px 8px;
+    }
+
+    @media (max-width: 480px) {
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <h1>ムダゼロ</h1>
+      <p>サブスクの更新忘れを防ぎ、節約できる金額を見える化します。</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="summary">
+      <div class="card">
+        <div class="label">毎月の支払額</div>
+        <div id="monthlyTotal" class="value">¥0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">年間の支払額</div>
+        <div id="yearlyTotal" class="value">¥0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">登録サービス</div>
+        <div id="subscriptionCount" class="value">0件</div>
+      </div>
+
+      <div class="card">
+        <div class="label">節約できた金額</div>
+        <div id="savedTotal" class="value green">¥0</div>
+      </div>
+    </section>
+
+    <section class="card suggestion">
+      <div class="suggestion-title">今日の節約提案</div>
+      <strong id="suggestionText">
+        サブスクを登録すると節約候補を表示します。
+      </strong>
+    </section>
+
+    <section class="card">
+      <h2>サブスクを登録</h2>
+
+      <form id="subscriptionForm">
+        <label for="name">サービス名</label>
+        <input id="name" type="text" placeholder="Netflix" required>
+
+        <label for="price">料金</label>
+        <input id="price" type="number" min="1" placeholder="1490" required>
+
+        <label for="cycle">支払い周期</label>
+        <select id="cycle">
+          <option value="monthly">月額</option>
+          <option value="yearly">年額</option>
+        </select>
+
+        <label for="renewalDate">次回更新日</label>
+        <input id="renewalDate" type="date" required>
+
+        <button class="primary" type="submit">
+          登録する
+        </button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>登録中のサブスク</h2>
+      <div id="subscriptionList"></div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "mudazero-data";
+
+    let subscriptions = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || "[]"
+    );
+
+    const form = document.getElementById("subscriptionForm");
+    const list = document.getElementById("subscriptionList");
+
+    function formatYen(value) {
+      return new Intl.NumberFormat("ja-JP", {
+        style: "currency",
+        currency: "JPY",
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+
+    function yearlyPrice(item) {
+      return item.cycle === "monthly"
+        ? item.price * 12
+        : item.price;
+    }
+
+    function monthlyPrice(item) {
+      return item.cycle === "monthly"
+        ? item.price
+        : item.price / 12;
+    }
+
+    function save() {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(subscriptions)
+      );
+    }
+
+    function render() {
+      list.innerHTML = "";
+
+      const active = subscriptions.filter(
+        item => !item.cancelled
+      );
+
+      const cancelled = subscriptions.filter(
+        item => item.cancelled
+      );
+
+      const monthlyTotal = active.reduce(
+        (sum, item) => sum + monthlyPrice(item),
+        0
+      );
+
+      const yearlyTotal = active.reduce(
+        (sum, item) => sum + yearlyPrice(item),
+        0
+      );
+
+      const savedTotal = cancelled.reduce(
+        (sum, item) => sum + yearlyPrice(item),
+        0
+      );
+
+      document.getElementById("monthlyTotal").textContent =
+        formatYen(monthlyTotal);
+
+      document.getElementById("yearlyTotal").textContent =
+        formatYen(yearlyTotal);
+
+      document.getElementById("subscriptionCount").textContent =
+        active.length + "件";
+
+      document.getElementById("savedTotal").textContent =
+        formatYen(savedTotal);
+
+      if (active.length === 0) {
+        list.innerHTML =
+          '<div class="empty">まだ登録されていません。</div>';
+
+        document.getElementById("suggestionText").textContent =
+          "サブスクを登録すると節約候補を表示します。";
+
+        return;
+      }
+
+      const suggestion = [...active].sort(
+        (a, b) => yearlyPrice(b) - yearlyPrice(a)
+      )[0];
+
+      document.getElementById("suggestionText").textContent =
+        suggestion.name +
+        "を解約すると年間" +
+        formatYen(yearlyPrice(suggestion)) +
+        "節約できます。";
+
+      active.forEach(item => {
+        const element = document.createElement("div");
+        element.className = "subscription";
+
+        element.innerHTML = `
+          <div class="subscription-name">${item.name}</div>
+          <div class="muted">
+            ${item.cycle === "monthly" ? "月額" : "年額"}
+            ${formatYen(item.price)}
+          </div>
+          <div class="muted">
+            次回更新日：${item.renewalDate}
+          </div>
+          <div class="muted">
+            年間コスト：${formatYen(yearlyPrice(item))}
+          </div>
+          <div class="actions">
+            <button
+              class="done"
+              onclick="cancelSubscription('${item.id}')"
+            >
+              解約済みにする
+            </button>
+            <button
+              class="delete"
+              onclick="deleteSubscription('${item.id}')"
+            >
+              削除
+            </button>
+          </div>
+        `;
+
+        list.appendChild(element);
+      });
+    }
+
+    function cancelSubscription(id) {
+      const item = subscriptions.find(
+        subscription => subscription.id === id
+      );
+
+      if (!item) return;
+
+      item.cancelled = true;
+      save();
+      render();
+    }
+
+    function deleteSubscription(id) {
+      const confirmed = confirm("削除しますか？");
+
+      if (!confirmed) return;
+
+      subscriptions = subscriptions.filter(
+        item => item.id !== id
+      );
+
+      save();
+      render();
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      subscriptions.push({
+        id: String(Date.now()),
+        name: document.getElementById("name").value.trim(),
+        price: Number(document.getElementById("price").value),
+        cycle: document.getElementById("cycle").value,
+        renewalDate:
+          document.getElementById("renewalDate").value,
+        cancelled: false
+      });
+
+      save();
+      form.reset();
+      setDefaultDate();
+      render();
+    });
+
+    function setDefaultDate() {
+      const date = new Date();
+      date.setMonth(date.getMonth() + 1);
+
+      document.getElementById("renewalDate").value =
+        date.toISOString().split("T")[0];
+    }
+
+    setDefaultDate();
+    render();
+  </script>
+</body>
+</html>
