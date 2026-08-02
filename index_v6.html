@@ -1,0 +1,3479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="サブスクの更新日と料金を管理し、見直し候補を分かりやすく表示するアプリ"
+  >
+
+  <meta name="theme-color" content="#5846e8">
+
+  <title>ムダゼロ v6</title>
+
+  <style>
+    :root {
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --text: #151725;
+      --muted: #717789;
+      --border: rgba(21, 23, 37, 0.08);
+
+      --primary: #5846e8;
+      --primary-dark: #4334c7;
+      --primary-soft: #efedff;
+
+      --danger: #d92d4f;
+      --danger-soft: #fff0f3;
+
+      --warning: #c76a10;
+      --warning-soft: #fff5e8;
+
+      --success: #158653;
+      --success-soft: #eaf9f1;
+
+      --shadow:
+        0 18px 50px rgba(38, 44, 76, 0.08),
+        0 3px 10px rgba(38, 44, 76, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans JP",
+        sans-serif;
+
+      color: var(--text);
+
+      background:
+        radial-gradient(
+          circle at 95% 0%,
+          rgba(88, 70, 232, 0.12),
+          transparent 30%
+        ),
+        var(--bg);
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .container {
+      width: min(760px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+
+      padding:
+        calc(30px + env(safe-area-inset-top))
+        20px
+        76px;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 88% 10%,
+          rgba(255, 255, 255, 0.22),
+          transparent 25%
+        ),
+        linear-gradient(
+          135deg,
+          #3f35d2,
+          #7144e4 58%,
+          #964fda
+        );
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+
+      width: 190px;
+      height: 190px;
+
+      right: -75px;
+      bottom: -105px;
+
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .header-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .version {
+      display: inline-flex;
+      padding: 6px 11px;
+
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+
+      background: rgba(255, 255, 255, 0.12);
+
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 14px 0 7px;
+
+      font-size: clamp(36px, 10vw, 50px);
+      font-weight: 900;
+
+      letter-spacing: -0.05em;
+    }
+
+    .header-description {
+      max-width: 560px;
+      margin: 0;
+
+      font-size: 15px;
+      line-height: 1.75;
+
+      opacity: 0.92;
+    }
+
+    main {
+      position: relative;
+      z-index: 2;
+
+      margin-top: -42px;
+
+      padding-bottom:
+        calc(110px + env(safe-area-inset-bottom));
+    }
+
+    .card {
+      margin-bottom: 16px;
+      padding: 20px;
+
+      border: 1px solid var(--border);
+      border-radius: 24px;
+
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: var(--shadow);
+    }
+
+    .main-total-card {
+      position: relative;
+      overflow: hidden;
+
+      min-height: 185px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .main-total-card::after {
+      content: "";
+      position: absolute;
+
+      width: 165px;
+      height: 165px;
+
+      right: -65px;
+      bottom: -80px;
+
+      border-radius: 50%;
+      background: var(--primary-soft);
+    }
+
+    .eyebrow {
+      position: relative;
+      z-index: 1;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .main-total {
+      position: relative;
+      z-index: 1;
+
+      margin: 8px 0 2px;
+
+      font-size: clamp(42px, 13vw, 62px);
+      font-weight: 900;
+
+      letter-spacing: -0.06em;
+    }
+
+    .main-total-note {
+      position: relative;
+      z-index: 1;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .mini-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+
+      margin-top: 18px;
+    }
+
+    .mini-summary-item {
+      padding: 13px;
+
+      border-radius: 16px;
+
+      background: #f7f7fb;
+    }
+
+    .mini-label {
+      margin-bottom: 6px;
+
+      color: var(--muted);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .mini-value {
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .section-title {
+      margin: 0 0 17px;
+
+      font-size: 22px;
+      font-weight: 900;
+
+      letter-spacing: -0.025em;
+    }
+
+    .section-description {
+      margin: -8px 0 18px;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .focus-card {
+      border-color: rgba(217, 45, 79, 0.14);
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255, 240, 243, 0.96),
+          rgba(255, 255, 255, 0.98)
+        );
+    }
+
+    .focus-label {
+      margin-bottom: 11px;
+
+      color: var(--danger);
+
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .focus-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .service-icon {
+      width: 50px;
+      height: 50px;
+
+      flex: 0 0 auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 16px;
+
+      color: var(--primary);
+      background: var(--primary-soft);
+
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .focus-content {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .focus-name {
+      margin: 0 0 6px;
+
+      overflow-wrap: anywhere;
+
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .score-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 63px;
+      min-height: 30px;
+      padding: 5px 9px;
+
+      border-radius: 999px;
+
+      color: white;
+      background: var(--danger);
+
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .score-badge.medium {
+      background: var(--warning);
+    }
+
+    .score-badge.low {
+      background: var(--success);
+    }
+
+    .score-level {
+      color: var(--muted);
+
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .focus-saving {
+      margin: 17px 0 0;
+
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.5;
+    }
+
+    .focus-saving strong {
+      color: var(--danger);
+    }
+
+    .reason-list {
+      display: grid;
+      gap: 8px;
+
+      margin-top: 16px;
+    }
+
+    .reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+
+      padding: 10px 12px;
+
+      border-radius: 13px;
+
+      color: #3d4354;
+      background: rgba(255, 255, 255, 0.75);
+
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.55;
+    }
+
+    .focus-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+
+      margin-top: 17px;
+    }
+
+    .button {
+      min-height: 48px;
+
+      border: 0;
+      border-radius: 14px;
+
+      font-weight: 900;
+    }
+
+    .button:active,
+    .icon-button:active,
+    .fab:active {
+      transform: scale(0.98);
+    }
+
+    .primary-button {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--primary),
+          #7858ef
+        );
+    }
+
+    .secondary-button {
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .danger-button {
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .success-button {
+      color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .link-button {
+      min-height: 48px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 14px;
+
+      color: white;
+      background: var(--primary);
+
+      text-decoration: none;
+
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .ranking-item {
+      display: grid;
+      grid-template-columns: 34px 42px 1fr auto;
+      gap: 10px;
+      align-items: center;
+
+      padding: 12px;
+
+      border: 1px solid var(--border);
+      border-radius: 17px;
+
+      background: white;
+    }
+
+    .rank-number {
+      color: var(--muted);
+
+      text-align: center;
+
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .ranking-icon {
+      width: 42px;
+      height: 42px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 13px;
+
+      background: var(--primary-soft);
+
+      font-size: 19px;
+    }
+
+    .ranking-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .ranking-note {
+      margin-top: 3px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .ranking-score {
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+
+      margin-bottom: 14px;
+    }
+
+    .toolbar .section-title {
+      margin-bottom: 0;
+    }
+
+    .sort-box {
+      width: 150px;
+    }
+
+    .sort-label {
+      margin-bottom: 5px;
+
+      color: var(--muted);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 50px;
+
+      padding: 11px 13px;
+
+      border: 1px solid #dfe2eb;
+      border-radius: 14px;
+
+      color: var(--text);
+      background: white;
+
+      font-size: 16px;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+
+      background-image:
+        linear-gradient(
+          45deg,
+          transparent 50%,
+          #667085 50%
+        ),
+        linear-gradient(
+          135deg,
+          #667085 50%,
+          transparent 50%
+        );
+
+      background-position:
+        calc(100% - 18px) 21px,
+        calc(100% - 13px) 21px;
+
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+
+      border-color: var(--primary);
+
+      box-shadow:
+        0 0 0 4px rgba(88, 70, 232, 0.12);
+    }
+
+    label {
+      display: block;
+
+      margin: 15px 0 7px;
+
+      color: #34394a;
+
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .subscription-list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .subscription-row {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+
+      padding: 14px;
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      background: white;
+    }
+
+    .subscription-row:active {
+      background: #fafaff;
+    }
+
+    .row-main {
+      min-width: 0;
+    }
+
+    .row-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      margin-bottom: 4px;
+
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .row-meta {
+      color: var(--muted);
+
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .row-right {
+      text-align: right;
+    }
+
+    .row-score {
+      margin-bottom: 5px;
+
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .row-days {
+      color: var(--muted);
+
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .empty-state {
+      padding: 32px 12px;
+
+      color: var(--muted);
+
+      text-align: center;
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+
+      margin-bottom: 16px;
+    }
+
+    .calendar-title {
+      margin: 0;
+
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .calendar-nav {
+      display: flex;
+      gap: 7px;
+    }
+
+    .icon-button {
+      width: 42px;
+      height: 42px;
+
+      border: 0;
+      border-radius: 13px;
+
+      color: var(--primary);
+      background: var(--primary-soft);
+
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .calendar-weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .calendar-weekdays {
+      margin-bottom: 7px;
+    }
+
+    .weekday {
+      padding: 4px 0;
+
+      color: var(--muted);
+
+      text-align: center;
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .calendar-day {
+      min-height: 66px;
+      padding: 6px 4px;
+
+      border-radius: 11px;
+
+      background: #f7f7fb;
+
+      text-align: center;
+    }
+
+    .calendar-day.empty {
+      background: transparent;
+    }
+
+    .calendar-day.today {
+      box-shadow:
+        inset 0 0 0 2px var(--primary);
+    }
+
+    .day-number {
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .calendar-events {
+      display: grid;
+      gap: 3px;
+
+      margin-top: 5px;
+    }
+
+    .calendar-event {
+      overflow: hidden;
+
+      padding: 3px;
+
+      border-radius: 5px;
+
+      color: white;
+      background: var(--primary);
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      font-size: 7px;
+      font-weight: 800;
+    }
+
+    .calendar-event.trial {
+      background: var(--warning);
+    }
+
+    .pie-layout {
+      display: grid;
+      grid-template-columns: 185px 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .pie-wrap {
+      position: relative;
+
+      width: 175px;
+      height: 175px;
+
+      margin: 0 auto;
+    }
+
+    .pie-chart {
+      width: 175px;
+      height: 175px;
+
+      border-radius: 50%;
+
+      background:
+        conic-gradient(#dfe2eb 0deg 360deg);
+    }
+
+    .pie-center {
+      position: absolute;
+      inset: 37px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 50%;
+
+      background: white;
+    }
+
+    .pie-label {
+      color: var(--muted);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .pie-total {
+      margin-top: 4px;
+
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .legend {
+      display: grid;
+      gap: 9px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 9px;
+
+      font-size: 12px;
+    }
+
+    .legend-name {
+      min-width: 0;
+
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+
+      flex: 0 0 auto;
+
+      border-radius: 50%;
+    }
+
+    .legend-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      font-weight: 800;
+    }
+
+    .legend-value {
+      color: var(--muted);
+
+      font-weight: 800;
+    }
+
+    details {
+      margin-top: 17px;
+
+      border-radius: 15px;
+
+      background: #f7f7fb;
+    }
+
+    summary {
+      padding: 14px;
+
+      color: var(--primary);
+
+      font-size: 13px;
+      font-weight: 900;
+
+      cursor: pointer;
+    }
+
+    .details-inner {
+      padding: 0 14px 15px;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      margin-top: 15px;
+    }
+
+    .checkbox-row input {
+      width: 22px;
+      height: 22px;
+      min-height: 22px;
+      margin: 0;
+    }
+
+    .checkbox-row label {
+      margin: 0;
+    }
+
+    .fab {
+      position: fixed;
+      z-index: 800;
+
+      right: 20px;
+      bottom:
+        calc(20px + env(safe-area-inset-bottom));
+
+      width: 62px;
+      height: 62px;
+
+      border: 0;
+      border-radius: 50%;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--primary),
+          #7c58ef
+        );
+
+      font-size: 34px;
+      font-weight: 400;
+
+      box-shadow:
+        0 16px 34px rgba(88, 70, 232, 0.34);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+
+      padding-top: 40px;
+
+      background: rgba(17, 20, 33, 0.54);
+
+      opacity: 0;
+      visibility: hidden;
+
+      transition:
+        opacity 0.2s,
+        visibility 0.2s;
+    }
+
+    .modal-backdrop.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-sheet {
+      width: min(760px, 100%);
+      max-height: 93vh;
+
+      overflow-y: auto;
+
+      padding:
+        20px
+        20px
+        calc(24px + env(safe-area-inset-bottom));
+
+      border-radius: 26px 26px 0 0;
+
+      background: white;
+
+      transform: translateY(100%);
+
+      transition:
+        transform 0.25s ease;
+    }
+
+    .modal-backdrop.show .modal-sheet {
+      transform: translateY(0);
+    }
+
+    .modal-handle {
+      width: 46px;
+      height: 5px;
+
+      margin: 0 auto 18px;
+
+      border-radius: 999px;
+
+      background: #d8dbe4;
+    }
+
+    .modal-title {
+      margin: 0 0 5px;
+
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .modal-description {
+      margin: 0 0 8px;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+
+      margin-top: 19px;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+
+      margin-bottom: 18px;
+    }
+
+    .detail-name {
+      margin: 0 0 5px;
+
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .detail-subtitle {
+      color: var(--muted);
+
+      font-size: 13px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+
+      margin-bottom: 16px;
+    }
+
+    .detail-box {
+      padding: 13px;
+
+      border-radius: 15px;
+
+      background: #f7f7fb;
+    }
+
+    .detail-label {
+      margin-bottom: 5px;
+
+      color: var(--muted);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .detail-value {
+      overflow-wrap: anywhere;
+
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.5;
+    }
+
+    .detail-score {
+      padding: 15px;
+
+      border-radius: 17px;
+
+      background: var(--danger-soft);
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 1300;
+
+      left: 50%;
+      bottom:
+        calc(24px + env(safe-area-inset-bottom));
+
+      width: min(calc(100% - 32px), 430px);
+
+      padding: 13px 15px;
+
+      border-radius: 15px;
+
+      color: white;
+      background: rgba(17, 20, 33, 0.93);
+
+      text-align: center;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      transform: translate(-50%, 120px);
+      opacity: 0;
+
+      pointer-events: none;
+
+      transition:
+        transform 0.25s,
+        opacity 0.25s;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    .footer {
+      padding: 8px 5px 0;
+
+      color: var(--muted);
+
+      text-align: center;
+
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 620px) {
+      .pie-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .main-total-card {
+        min-height: 175px;
+      }
+
+      .mini-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .mini-summary-item:last-child {
+        grid-column: 1 / -1;
+      }
+
+      .toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .sort-box {
+        width: 100%;
+      }
+
+      .calendar-day {
+        min-height: 58px;
+        padding: 5px 2px;
+      }
+
+      .focus-actions,
+      .modal-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .ranking-item {
+        grid-template-columns: 28px 40px 1fr auto;
+        padding: 11px 8px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .two-column,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-weekdays,
+      .calendar-grid {
+        gap: 3px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container header-inner">
+      <div class="version">
+        MUDAZERO v6
+      </div>
+
+      <h1>ムダゼロ</h1>
+
+      <p class="header-description">
+        今日見直すべきサブスクを、
+        分かりやすいスコアと理由で表示します。
+      </p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card main-total-card">
+      <div>
+        <div class="eyebrow">
+          今月のサブスク支出
+        </div>
+
+        <div
+          id="currentMonthTotal"
+          class="main-total"
+        >
+          ¥0
+        </div>
+
+        <div class="main-total-note">
+          現在登録中の月額換算額です。
+        </div>
+      </div>
+
+      <div class="mini-summary">
+        <div class="mini-summary-item">
+          <div class="mini-label">
+            年間合計
+          </div>
+
+          <div
+            id="yearlyTotal"
+            class="mini-value"
+          >
+            ¥0
+          </div>
+        </div>
+
+        <div class="mini-summary-item">
+          <div class="mini-label">
+            登録件数
+          </div>
+
+          <div
+            id="activeCount"
+            class="mini-value"
+          >
+            0件
+          </div>
+        </div>
+
+        <div class="mini-summary-item">
+          <div class="mini-label">
+            節約済み
+          </div>
+
+          <div
+            id="savedTotal"
+            class="mini-value"
+          >
+            ¥0
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="focusCard"
+      class="card focus-card"
+    >
+      <div class="focus-label">
+        今日見直す
+      </div>
+
+      <div id="focusContent"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">
+        解約おすすめランキング
+      </h2>
+
+      <p class="section-description">
+        料金、更新日、無料期間、同種サービスの重複から算出しています。
+      </p>
+
+      <div
+        id="rankingList"
+        class="ranking-list"
+      ></div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <h2 class="section-title">
+          登録中のサブスク
+        </h2>
+
+        <div class="sort-box">
+          <div class="sort-label">
+            並び替え
+          </div>
+
+          <select id="sortOrder">
+            <option value="score">
+              見直しスコア順
+            </option>
+
+            <option value="renewal">
+              更新日が近い順
+            </option>
+
+            <option value="high">
+              金額が高い順
+            </option>
+
+            <option value="name">
+              名前順
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div
+        id="subscriptionList"
+        class="subscription-list"
+      ></div>
+    </section>
+
+    <section class="card">
+      <div class="calendar-header">
+        <h2
+          id="calendarTitle"
+          class="calendar-title"
+        >
+          更新カレンダー
+        </h2>
+
+        <div class="calendar-nav">
+          <button
+            id="previousMonthButton"
+            class="icon-button"
+            type="button"
+          >
+            ‹
+          </button>
+
+          <button
+            id="nextMonthButton"
+            class="icon-button"
+            type="button"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      <div class="calendar-weekdays">
+        <div class="weekday">日</div>
+        <div class="weekday">月</div>
+        <div class="weekday">火</div>
+        <div class="weekday">水</div>
+        <div class="weekday">木</div>
+        <div class="weekday">金</div>
+        <div class="weekday">土</div>
+      </div>
+
+      <div
+        id="calendarGrid"
+        class="calendar-grid"
+      ></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">
+        年間支出の割合
+      </h2>
+
+      <div class="pie-layout">
+        <div class="pie-wrap">
+          <div
+            id="pieChart"
+            class="pie-chart"
+          ></div>
+
+          <div class="pie-center">
+            <div class="pie-label">
+              年間合計
+            </div>
+
+            <div
+              id="pieTotal"
+              class="pie-total"
+            >
+              ¥0
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="pieLegend"
+          class="legend"
+        ></div>
+      </div>
+    </section>
+
+    <div class="footer">
+      登録内容は、このブラウザ内に保存されます。
+    </div>
+  </main>
+
+  <button
+    id="addButton"
+    class="fab"
+    type="button"
+    aria-label="サブスクを追加"
+  >
+    ＋
+  </button>
+
+  <div
+    id="formModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section class="modal-sheet">
+      <div class="modal-handle"></div>
+
+      <h2
+        id="formModalTitle"
+        class="modal-title"
+      >
+        サブスクを追加
+      </h2>
+
+      <p class="modal-description">
+        基本の4項目だけで登録できます。
+      </p>
+
+      <form id="subscriptionForm">
+        <input
+          id="editingId"
+          type="hidden"
+        >
+
+        <label for="name">
+          サービス名
+        </label>
+
+        <input
+          id="name"
+          type="text"
+          maxlength="50"
+          placeholder="例：Netflix"
+          required
+        >
+
+        <div class="two-column">
+          <div>
+            <label for="price">
+              料金
+            </label>
+
+            <input
+              id="price"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              placeholder="1490"
+              required
+            >
+          </div>
+
+          <div>
+            <label for="cycle">
+              支払い周期
+            </label>
+
+            <select id="cycle">
+              <option value="monthly">
+                月額
+              </option>
+
+              <option value="yearly">
+                年額
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <label for="renewalDate">
+          次回更新日
+        </label>
+
+        <input
+          id="renewalDate"
+          type="date"
+          required
+        >
+
+        <details>
+          <summary>
+            詳細設定
+          </summary>
+
+          <div class="details-inner">
+            <div class="two-column">
+              <div>
+                <label for="icon">
+                  アイコン
+                </label>
+
+                <input
+                  id="icon"
+                  type="text"
+                  maxlength="8"
+                  placeholder="🎬"
+                >
+              </div>
+
+              <div>
+                <label for="category">
+                  カテゴリー
+                </label>
+
+                <select id="category">
+                  <option value="動画">動画</option>
+                  <option value="音楽">音楽</option>
+                  <option value="AI">AI</option>
+                  <option value="仕事">仕事</option>
+                  <option value="ゲーム">ゲーム</option>
+                  <option value="クラウド">クラウド</option>
+                  <option value="買い物">買い物</option>
+                  <option value="その他" selected>その他</option>
+                </select>
+              </div>
+            </div>
+
+            <label for="cancelUrl">
+              解約ページURL
+            </label>
+
+            <input
+              id="cancelUrl"
+              type="url"
+              placeholder="https://..."
+            >
+
+            <div class="checkbox-row">
+              <input
+                id="hasTrial"
+                type="checkbox"
+              >
+
+              <label for="hasTrial">
+                無料期間中
+              </label>
+            </div>
+
+            <div id="trialEndWrap" hidden>
+              <label for="trialEndDate">
+                無料期間終了日
+              </label>
+
+              <input
+                id="trialEndDate"
+                type="date"
+              >
+            </div>
+          </div>
+        </details>
+
+        <div class="modal-actions">
+          <button
+            id="closeFormButton"
+            class="button secondary-button"
+            type="button"
+          >
+            キャンセル
+          </button>
+
+          <button
+            class="button primary-button"
+            type="submit"
+          >
+            保存する
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div
+    id="detailModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section class="modal-sheet">
+      <div class="modal-handle"></div>
+
+      <div id="detailContent"></div>
+
+      <div class="modal-actions">
+        <button
+          id="closeDetailButton"
+          class="button secondary-button"
+          type="button"
+        >
+          閉じる
+        </button>
+
+        <button
+          id="editDetailButton"
+          class="button primary-button"
+          type="button"
+        >
+          編集
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "mudazero-data";
+    const SETTINGS_KEY = "mudazero-v6-settings";
+
+    const COLORS = [
+      "#5846e8",
+      "#8b5cf6",
+      "#2563eb",
+      "#15945b",
+      "#f59e0b",
+      "#ef4444",
+      "#06b6d4",
+      "#ec4899",
+      "#84cc16",
+      "#64748b"
+    ];
+
+    let subscriptions = loadSubscriptions();
+    let settings = loadSettings();
+
+    let selectedId = null;
+    let toastTimer = null;
+
+    const now = new Date();
+
+    let calendarYear = now.getFullYear();
+    let calendarMonth = now.getMonth();
+
+    const formModal =
+      document.getElementById("formModal");
+
+    const detailModal =
+      document.getElementById("detailModal");
+
+    const form =
+      document.getElementById("subscriptionForm");
+
+    const list =
+      document.getElementById("subscriptionList");
+
+    const toast =
+      document.getElementById("toast");
+
+    function loadSubscriptions() {
+      try {
+        const parsed =
+          JSON.parse(
+            localStorage.getItem(STORAGE_KEY) ||
+            "[]"
+          );
+
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        return parsed.map(item => ({
+          ...item,
+          id:
+            item.id ||
+            createId(),
+          icon:
+            item.icon ||
+            getDefaultIcon(item.name),
+          category:
+            item.category ||
+            "その他",
+          cancelUrl:
+            item.cancelUrl ||
+            "",
+          hasTrial:
+            Boolean(item.hasTrial),
+          trialEndDate:
+            item.trialEndDate ||
+            "",
+          cancelled:
+            Boolean(item.cancelled)
+        }));
+      } catch (error) {
+        console.error(error);
+        return [];
+      }
+    }
+
+    function loadSettings() {
+      try {
+        const parsed =
+          JSON.parse(
+            localStorage.getItem(
+              SETTINGS_KEY
+            ) || "{}"
+          );
+
+        return {
+          sortOrder:
+            parsed.sortOrder ||
+            "score"
+        };
+      } catch (error) {
+        return {
+          sortOrder: "score"
+        };
+      }
+    }
+
+    function saveSubscriptions() {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(subscriptions)
+      );
+    }
+
+    function saveSettings() {
+      localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify(settings)
+      );
+    }
+
+    function createId() {
+      if (
+        window.crypto &&
+        typeof crypto.randomUUID === "function"
+      ) {
+        return crypto.randomUUID();
+      }
+
+      return (
+        Date.now() +
+        "-" +
+        Math.random()
+          .toString(16)
+          .slice(2)
+      );
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatYen(value) {
+      return new Intl.NumberFormat(
+        "ja-JP",
+        {
+          style: "currency",
+          currency: "JPY",
+          maximumFractionDigits: 0
+        }
+      ).format(
+        Math.round(Number(value) || 0)
+      );
+    }
+
+    function getYearlyPrice(item) {
+      return item.cycle === "monthly"
+        ? Number(item.price) * 12
+        : Number(item.price);
+    }
+
+    function getMonthlyPrice(item) {
+      return item.cycle === "monthly"
+        ? Number(item.price)
+        : Number(item.price) / 12;
+    }
+
+    function getDaysUntil(dateString) {
+      if (!dateString) {
+        return Infinity;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const target =
+        new Date(
+          dateString +
+          "T00:00:00"
+        );
+
+      return Math.ceil(
+        (
+          target.getTime() -
+          today.getTime()
+        ) /
+        86400000
+      );
+    }
+
+    function getDefaultIcon(name) {
+      const normalized =
+        String(name || "")
+          .toLowerCase();
+
+      if (
+        normalized.includes("netflix") ||
+        normalized.includes("動画") ||
+        normalized.includes("hulu") ||
+        normalized.includes("disney")
+      ) {
+        return "🎬";
+      }
+
+      if (
+        normalized.includes("spotify") ||
+        normalized.includes("music") ||
+        normalized.includes("音楽")
+      ) {
+        return "🎵";
+      }
+
+      if (
+        normalized.includes("chatgpt") ||
+        normalized.includes("ai")
+      ) {
+        return "✦";
+      }
+
+      if (
+        normalized.includes("game") ||
+        normalized.includes("ゲーム") ||
+        normalized.includes("nintendo")
+      ) {
+        return "🎮";
+      }
+
+      if (
+        normalized.includes("amazon") ||
+        normalized.includes("prime")
+      ) {
+        return "📦";
+      }
+
+      if (
+        normalized.includes("cloud") ||
+        normalized.includes("icloud")
+      ) {
+        return "☁️";
+      }
+
+      return "◈";
+    }
+
+    function getActiveSubscriptions() {
+      return subscriptions.filter(
+        item =>
+          !item.cancelled
+      );
+    }
+
+    function getCategoryCount(category) {
+      return getActiveSubscriptions()
+        .filter(
+          item =>
+            item.category === category
+        )
+        .length;
+    }
+
+    function calculateReview(item) {
+      let score = 0;
+      const reasons = [];
+
+      const yearly =
+        getYearlyPrice(item);
+
+      const days =
+        getDaysUntil(
+          item.renewalDate
+        );
+
+      if (yearly >= 50000) {
+        score += 35;
+        reasons.push(
+          "年間料金が5万円以上です"
+        );
+      } else if (yearly >= 20000) {
+        score += 25;
+        reasons.push(
+          "年間料金が2万円以上です"
+        );
+      } else if (yearly >= 10000) {
+        score += 12;
+        reasons.push(
+          "年間料金が1万円以上です"
+        );
+      }
+
+      if (days <= 3) {
+        score += 30;
+        reasons.push(
+          "更新まで3日以内です"
+        );
+      } else if (days <= 7) {
+        score += 22;
+        reasons.push(
+          "更新まで7日以内です"
+        );
+      } else if (days <= 14) {
+        score += 12;
+        reasons.push(
+          "更新まで2週間以内です"
+        );
+      }
+
+      if (
+        item.hasTrial &&
+        item.trialEndDate
+      ) {
+        const trialDays =
+          getDaysUntil(
+            item.trialEndDate
+          );
+
+        if (trialDays <= 3) {
+          score += 30;
+          reasons.push(
+            "無料期間の終了まで3日以内です"
+          );
+        } else if (trialDays <= 7) {
+          score += 20;
+          reasons.push(
+            "無料期間の終了まで7日以内です"
+          );
+        }
+      }
+
+      const categoryCount =
+        getCategoryCount(
+          item.category
+        );
+
+      if (categoryCount >= 3) {
+        score += 20;
+        reasons.push(
+          item.category +
+          "カテゴリーを3件以上契約しています"
+        );
+      } else if (categoryCount >= 2) {
+        score += 10;
+        reasons.push(
+          item.category +
+          "カテゴリーを複数契約しています"
+        );
+      }
+
+      score =
+        Math.min(100, score);
+
+      if (reasons.length === 0) {
+        reasons.push(
+          "現時点で強い見直し理由はありません"
+        );
+      }
+
+      let level = "継続候補";
+
+      if (score >= 70) {
+        level = "優先的に見直す";
+      } else if (score >= 40) {
+        level = "検討する";
+      }
+
+      return {
+        score,
+        level,
+        reasons
+      };
+    }
+
+    function getScoreClass(score) {
+      if (score >= 70) {
+        return "";
+      }
+
+      if (score >= 40) {
+        return "medium";
+      }
+
+      return "low";
+    }
+
+    function getSortedActive() {
+      const active =
+        [...getActiveSubscriptions()];
+
+      if (
+        settings.sortOrder === "renewal"
+      ) {
+        return active.sort(
+          (a, b) =>
+            getDaysUntil(a.renewalDate) -
+            getDaysUntil(b.renewalDate)
+        );
+      }
+
+      if (
+        settings.sortOrder === "high"
+      ) {
+        return active.sort(
+          (a, b) =>
+            getYearlyPrice(b) -
+            getYearlyPrice(a)
+        );
+      }
+
+      if (
+        settings.sortOrder === "name"
+      ) {
+        return active.sort(
+          (a, b) =>
+            a.name.localeCompare(
+              b.name,
+              "ja"
+            )
+        );
+      }
+
+      return active.sort(
+        (a, b) =>
+          calculateReview(b).score -
+          calculateReview(a).score
+      );
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(
+        () => {
+          toast.classList.remove(
+            "show"
+          );
+        },
+        2200
+      );
+    }
+
+    function showModal(modal) {
+      modal.classList.add("show");
+
+      modal.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+      document.body.classList.add(
+        "modal-open"
+      );
+    }
+
+    function closeModal(modal) {
+      modal.classList.remove("show");
+
+      modal.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+
+      if (
+        !document.querySelector(
+          ".modal-backdrop.show"
+        )
+      ) {
+        document.body.classList.remove(
+          "modal-open"
+        );
+      }
+    }
+
+    function renderSummary() {
+      const active =
+        getActiveSubscriptions();
+
+      const cancelled =
+        subscriptions.filter(
+          item =>
+            item.cancelled
+        );
+
+      const monthlyTotal =
+        active.reduce(
+          (sum, item) =>
+            sum +
+            getMonthlyPrice(item),
+          0
+        );
+
+      const yearlyTotal =
+        active.reduce(
+          (sum, item) =>
+            sum +
+            getYearlyPrice(item),
+          0
+        );
+
+      const savedTotal =
+        cancelled.reduce(
+          (sum, item) =>
+            sum +
+            getYearlyPrice(item),
+          0
+        );
+
+      document.getElementById(
+        "currentMonthTotal"
+      ).textContent =
+        formatYen(monthlyTotal);
+
+      document.getElementById(
+        "yearlyTotal"
+      ).textContent =
+        formatYen(yearlyTotal);
+
+      document.getElementById(
+        "activeCount"
+      ).textContent =
+        active.length + "件";
+
+      document.getElementById(
+        "savedTotal"
+      ).textContent =
+        formatYen(savedTotal);
+    }
+
+    function renderFocus() {
+      const element =
+        document.getElementById(
+          "focusContent"
+        );
+
+      const ranked =
+        [...getActiveSubscriptions()]
+          .sort(
+            (a, b) =>
+              calculateReview(b).score -
+              calculateReview(a).score
+          );
+
+      if (ranked.length === 0) {
+        element.innerHTML = `
+          <div class="empty-state">
+            サブスクを登録すると、
+            今日見直す候補を表示します。
+          </div>
+        `;
+
+        return;
+      }
+
+      const item = ranked[0];
+
+      const review =
+        calculateReview(item);
+
+      const days =
+        getDaysUntil(
+          item.renewalDate
+        );
+
+      element.innerHTML = `
+        <div class="focus-main">
+          <div class="service-icon">
+            ${escapeHtml(item.icon)}
+          </div>
+
+          <div class="focus-content">
+            <h3 class="focus-name">
+              ${escapeHtml(item.name)}
+            </h3>
+
+            <div class="score-line">
+              <span class="
+                score-badge
+                ${getScoreClass(review.score)}
+              ">
+                ${review.score}点
+              </span>
+
+              <span class="score-level">
+                ${escapeHtml(review.level)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <p class="focus-saving">
+          解約すると年間
+          <strong>
+            ${formatYen(
+              getYearlyPrice(item)
+            )}
+          </strong>
+          節約できます。
+        </p>
+
+        <div class="reason-list">
+          ${review.reasons
+            .slice(0, 3)
+            .map(
+              reason => `
+                <div class="reason-item">
+                  <span>✓</span>
+                  <span>
+                    ${escapeHtml(reason)}
+                  </span>
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+
+        <div class="focus-actions">
+          ${
+            item.cancelUrl
+              ? `
+                <a
+                  class="link-button"
+                  href="${escapeHtml(item.cancelUrl)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  解約ページ
+                </a>
+              `
+              : `
+                <button
+                  class="button secondary-button"
+                  type="button"
+                  data-focus-action="detail"
+                  data-id="${escapeHtml(item.id)}"
+                >
+                  詳細を見る
+                </button>
+              `
+          }
+
+          <button
+            class="button secondary-button"
+            type="button"
+            data-focus-action="detail"
+            data-id="${escapeHtml(item.id)}"
+          >
+            ${
+              item.cancelUrl
+                ? "詳細を見る"
+                : "内容を確認"
+            }
+          </button>
+        </div>
+      `;
+
+      element
+        .querySelectorAll(
+          "[data-focus-action]"
+        )
+        .forEach(button => {
+          button.addEventListener(
+            "click",
+            () => {
+              openDetail(
+                button.dataset.id
+              );
+            }
+          );
+        });
+    }
+
+    function renderRanking() {
+      const element =
+        document.getElementById(
+          "rankingList"
+        );
+
+      const ranked =
+        [...getActiveSubscriptions()]
+          .sort(
+            (a, b) =>
+              calculateReview(b).score -
+              calculateReview(a).score
+          )
+          .slice(0, 5);
+
+      element.innerHTML = "";
+
+      if (ranked.length === 0) {
+        element.innerHTML = `
+          <div class="empty-state">
+            ランキングに表示するデータがありません。
+          </div>
+        `;
+
+        return;
+      }
+
+      ranked.forEach(
+        (item, index) => {
+          const review =
+            calculateReview(item);
+
+          const row =
+            document.createElement(
+              "button"
+            );
+
+          row.type = "button";
+          row.className =
+            "ranking-item";
+
+          row.innerHTML = `
+            <div class="rank-number">
+              ${index + 1}
+            </div>
+
+            <div class="ranking-icon">
+              ${escapeHtml(item.icon)}
+            </div>
+
+            <div style="min-width:0;text-align:left;">
+              <div class="ranking-name">
+                ${escapeHtml(item.name)}
+              </div>
+
+              <div class="ranking-note">
+                年間
+                ${formatYen(
+                  getYearlyPrice(item)
+                )}
+              </div>
+            </div>
+
+            <div class="ranking-score">
+              ${review.score}点
+            </div>
+          `;
+
+          row.addEventListener(
+            "click",
+            () => {
+              openDetail(item.id);
+            }
+          );
+
+          element.appendChild(row);
+        }
+      );
+    }
+
+    function renderList() {
+      list.innerHTML = "";
+
+      const active =
+        getSortedActive();
+
+      if (active.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            右下の＋ボタンから、
+            サブスクを登録してください。
+          </div>
+        `;
+
+        return;
+      }
+
+      active.forEach(item => {
+        const review =
+          calculateReview(item);
+
+        const days =
+          getDaysUntil(
+            item.renewalDate
+          );
+
+        const row =
+          document.createElement(
+            "button"
+          );
+
+        row.type = "button";
+        row.className =
+          "subscription-row";
+
+        row.innerHTML = `
+          <div class="service-icon">
+            ${escapeHtml(item.icon)}
+          </div>
+
+          <div class="row-main">
+            <div class="row-name">
+              ${escapeHtml(item.name)}
+            </div>
+
+            <div class="row-meta">
+              ${
+                item.cycle === "monthly"
+                  ? "月額"
+                  : "年額"
+              }
+              ${formatYen(item.price)}
+              ・
+              ${escapeHtml(item.category)}
+            </div>
+          </div>
+
+          <div class="row-right">
+            <div class="row-score">
+              ${review.score}点
+            </div>
+
+            <div class="row-days">
+              ${
+                days < 0
+                  ? "更新日経過"
+                  : days === 0
+                    ? "本日更新"
+                    : "あと" +
+                      days +
+                      "日"
+              }
+            </div>
+          </div>
+        `;
+
+        row.addEventListener(
+          "click",
+          () => {
+            openDetail(item.id);
+          }
+        );
+
+        list.appendChild(row);
+      });
+    }
+
+    function renderCalendar() {
+      const grid =
+        document.getElementById(
+          "calendarGrid"
+        );
+
+      document.getElementById(
+        "calendarTitle"
+      ).textContent =
+        calendarYear +
+        "年" +
+        (calendarMonth + 1) +
+        "月 更新カレンダー";
+
+      grid.innerHTML = "";
+
+      const firstDay =
+        new Date(
+          calendarYear,
+          calendarMonth,
+          1
+        ).getDay();
+
+      const daysInMonth =
+        new Date(
+          calendarYear,
+          calendarMonth + 1,
+          0
+        ).getDate();
+
+      for (
+        let index = 0;
+        index < firstDay;
+        index += 1
+      ) {
+        const empty =
+          document.createElement(
+            "div"
+          );
+
+        empty.className =
+          "calendar-day empty";
+
+        grid.appendChild(empty);
+      }
+
+      const active =
+        getActiveSubscriptions();
+
+      for (
+        let day = 1;
+        day <= daysInMonth;
+        day += 1
+      ) {
+        const cell =
+          document.createElement(
+            "div"
+          );
+
+        const isToday =
+          now.getFullYear() ===
+            calendarYear &&
+          now.getMonth() ===
+            calendarMonth &&
+          now.getDate() === day;
+
+        cell.className =
+          "calendar-day" +
+          (
+            isToday
+              ? " today"
+              : ""
+          );
+
+        const events = [];
+
+        active.forEach(item => {
+          if (item.renewalDate) {
+            const date =
+              new Date(
+                item.renewalDate +
+                "T00:00:00"
+              );
+
+            if (
+              date.getFullYear() ===
+                calendarYear &&
+              date.getMonth() ===
+                calendarMonth &&
+              date.getDate() === day
+            ) {
+              events.push({
+                text:
+                  item.icon +
+                  " " +
+                  item.name,
+                trial: false
+              });
+            }
+          }
+
+          if (
+            item.hasTrial &&
+            item.trialEndDate
+          ) {
+            const trialDate =
+              new Date(
+                item.trialEndDate +
+                "T00:00:00"
+              );
+
+            if (
+              trialDate.getFullYear() ===
+                calendarYear &&
+              trialDate.getMonth() ===
+                calendarMonth &&
+              trialDate.getDate() === day
+            ) {
+              events.push({
+                text:
+                  "無料 " +
+                  item.name,
+                trial: true
+              });
+            }
+          }
+        });
+
+        cell.innerHTML = `
+          <div class="day-number">
+            ${day}
+          </div>
+
+          <div class="calendar-events">
+            ${events
+              .slice(0, 3)
+              .map(
+                event => `
+                  <div class="
+                    calendar-event
+                    ${
+                      event.trial
+                        ? "trial"
+                        : ""
+                    }
+                  ">
+                    ${escapeHtml(event.text)}
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        `;
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderPie() {
+      const pie =
+        document.getElementById(
+          "pieChart"
+        );
+
+      const legend =
+        document.getElementById(
+          "pieLegend"
+        );
+
+      const active =
+        [...getActiveSubscriptions()]
+          .sort(
+            (a, b) =>
+              getYearlyPrice(b) -
+              getYearlyPrice(a)
+          );
+
+      const total =
+        active.reduce(
+          (sum, item) =>
+            sum +
+            getYearlyPrice(item),
+          0
+        );
+
+      document.getElementById(
+        "pieTotal"
+      ).textContent =
+        formatYen(total);
+
+      legend.innerHTML = "";
+
+      if (total <= 0) {
+        pie.style.background =
+          "conic-gradient(#dfe2eb 0deg 360deg)";
+
+        legend.innerHTML = `
+          <div class="empty-state">
+            グラフに表示するデータがありません。
+          </div>
+        `;
+
+        return;
+      }
+
+      let current = 0;
+
+      const gradient =
+        active.map(
+          (item, index) => {
+            const start = current;
+
+            current +=
+              getYearlyPrice(item) /
+              total *
+              360;
+
+            return (
+              COLORS[
+                index %
+                COLORS.length
+              ] +
+              " " +
+              start +
+              "deg " +
+              current +
+              "deg"
+            );
+          }
+        );
+
+      pie.style.background =
+        "conic-gradient(" +
+        gradient.join(",") +
+        ")";
+
+      active.forEach(
+        (item, index) => {
+          const percentage =
+            getYearlyPrice(item) /
+            total *
+            100;
+
+          const row =
+            document.createElement(
+              "div"
+            );
+
+          row.className =
+            "legend-row";
+
+          row.innerHTML = `
+            <div class="legend-name">
+              <span
+                class="legend-dot"
+                style="
+                  background:
+                  ${
+                    COLORS[
+                      index %
+                      COLORS.length
+                    ]
+                  };
+                "
+              ></span>
+
+              <span class="legend-text">
+                ${escapeHtml(item.name)}
+              </span>
+            </div>
+
+            <div class="legend-value">
+              ${percentage.toFixed(1)}%
+            </div>
+          `;
+
+          legend.appendChild(row);
+        }
+      );
+    }
+
+    function render() {
+      renderSummary();
+      renderFocus();
+      renderRanking();
+      renderList();
+      renderCalendar();
+      renderPie();
+    }
+
+    function resetForm() {
+      form.reset();
+
+      document.getElementById(
+        "editingId"
+      ).value = "";
+
+      document.getElementById(
+        "formModalTitle"
+      ).textContent =
+        "サブスクを追加";
+
+      document.getElementById(
+        "trialEndWrap"
+      ).hidden = true;
+
+      const date = new Date();
+      date.setMonth(
+        date.getMonth() + 1
+      );
+
+      document.getElementById(
+        "renewalDate"
+      ).value =
+        date
+          .toISOString()
+          .split("T")[0];
+    }
+
+    function openAddForm() {
+      resetForm();
+      showModal(formModal);
+    }
+
+    function openEditForm(id) {
+      const item =
+        subscriptions.find(
+          subscription =>
+            subscription.id === id
+        );
+
+      if (!item) {
+        return;
+      }
+
+      document.getElementById(
+        "editingId"
+      ).value = item.id;
+
+      document.getElementById(
+        "formModalTitle"
+      ).textContent =
+        "サブスクを編集";
+
+      document.getElementById(
+        "name"
+      ).value = item.name;
+
+      document.getElementById(
+        "price"
+      ).value = item.price;
+
+      document.getElementById(
+        "cycle"
+      ).value = item.cycle;
+
+      document.getElementById(
+        "renewalDate"
+      ).value = item.renewalDate;
+
+      document.getElementById(
+        "icon"
+      ).value = item.icon;
+
+      document.getElementById(
+        "category"
+      ).value = item.category;
+
+      document.getElementById(
+        "cancelUrl"
+      ).value = item.cancelUrl;
+
+      document.getElementById(
+        "hasTrial"
+      ).checked = item.hasTrial;
+
+      document.getElementById(
+        "trialEndDate"
+      ).value =
+        item.trialEndDate;
+
+      document.getElementById(
+        "trialEndWrap"
+      ).hidden =
+        !item.hasTrial;
+
+      closeModal(detailModal);
+      showModal(formModal);
+    }
+
+    function openDetail(id) {
+      const item =
+        subscriptions.find(
+          subscription =>
+            subscription.id === id
+        );
+
+      if (!item) {
+        return;
+      }
+
+      selectedId = item.id;
+
+      const review =
+        calculateReview(item);
+
+      const days =
+        getDaysUntil(
+          item.renewalDate
+        );
+
+      const detail =
+        document.getElementById(
+          "detailContent"
+        );
+
+      detail.innerHTML = `
+        <div class="detail-header">
+          <div class="service-icon">
+            ${escapeHtml(item.icon)}
+          </div>
+
+          <div>
+            <h2 class="detail-name">
+              ${escapeHtml(item.name)}
+            </h2>
+
+            <div class="detail-subtitle">
+              ${escapeHtml(item.category)}
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-label">
+              支払額
+            </div>
+
+            <div class="detail-value">
+              ${
+                item.cycle === "monthly"
+                  ? "月額"
+                  : "年額"
+              }
+              ${formatYen(item.price)}
+            </div>
+          </div>
+
+          <div class="detail-box">
+            <div class="detail-label">
+              年間コスト
+            </div>
+
+            <div class="detail-value">
+              ${formatYen(
+                getYearlyPrice(item)
+              )}
+            </div>
+          </div>
+
+          <div class="detail-box">
+            <div class="detail-label">
+              次回更新日
+            </div>
+
+            <div class="detail-value">
+              ${escapeHtml(item.renewalDate)}
+            </div>
+          </div>
+
+          <div class="detail-box">
+            <div class="detail-label">
+              更新まで
+            </div>
+
+            <div class="detail-value">
+              ${
+                days < 0
+                  ? Math.abs(days) +
+                    "日前に経過"
+                  : days === 0
+                    ? "本日"
+                    : "あと" +
+                      days +
+                      "日"
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-score">
+          <div class="score-line">
+            <span class="
+              score-badge
+              ${getScoreClass(review.score)}
+            ">
+              ${review.score}点
+            </span>
+
+            <span class="score-level">
+              ${escapeHtml(review.level)}
+            </span>
+          </div>
+
+          <div class="reason-list">
+            ${review.reasons
+              .map(
+                reason => `
+                  <div class="reason-item">
+                    <span>✓</span>
+                    <span>
+                      ${escapeHtml(reason)}
+                    </span>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+
+        ${
+          item.hasTrial
+            ? `
+              <div
+                class="detail-box"
+                style="margin-top:14px;"
+              >
+                <div class="detail-label">
+                  無料期間終了日
+                </div>
+
+                <div class="detail-value">
+                  ${escapeHtml(
+                    item.trialEndDate
+                  )}
+                </div>
+              </div>
+            `
+            : ""
+        }
+
+        <div
+          class="focus-actions"
+          style="margin-top:16px;"
+        >
+          ${
+            item.cancelUrl
+              ? `
+                <a
+                  class="link-button"
+                  href="${escapeHtml(item.cancelUrl)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  解約ページ
+                </a>
+              `
+              : `
+                <button
+                  class="button secondary-button"
+                  type="button"
+                  disabled
+                >
+                  解約URL未登録
+                </button>
+              `
+          }
+
+          <button
+            id="markCancelledButton"
+            class="button success-button"
+            type="button"
+          >
+            解約済みにする
+          </button>
+        </div>
+
+        <button
+          id="deleteButton"
+          class="button danger-button"
+          type="button"
+          style="width:100%;margin-top:10px;"
+        >
+          完全に削除
+        </button>
+      `;
+
+      document.getElementById(
+        "markCancelledButton"
+      ).addEventListener(
+        "click",
+        () => {
+          markCancelled(item.id);
+        }
+      );
+
+      document.getElementById(
+        "deleteButton"
+      ).addEventListener(
+        "click",
+        () => {
+          deleteSubscription(item.id);
+        }
+      );
+
+      showModal(detailModal);
+    }
+
+    function markCancelled(id) {
+      const item =
+        subscriptions.find(
+          subscription =>
+            subscription.id === id
+        );
+
+      if (
+        !item ||
+        !confirm(
+          item.name +
+          "を解約済みにしますか？"
+        )
+      ) {
+        return;
+      }
+
+      item.cancelled = true;
+      item.cancelledAt =
+        new Date().toISOString();
+
+      saveSubscriptions();
+      closeModal(detailModal);
+      render();
+
+      showToast(
+        item.name +
+        "を解約済みにしました"
+      );
+    }
+
+    function deleteSubscription(id) {
+      const item =
+        subscriptions.find(
+          subscription =>
+            subscription.id === id
+        );
+
+      if (
+        !item ||
+        !confirm(
+          item.name +
+          "を完全に削除しますか？"
+        )
+      ) {
+        return;
+      }
+
+      subscriptions =
+        subscriptions.filter(
+          subscription =>
+            subscription.id !== id
+        );
+
+      saveSubscriptions();
+      closeModal(detailModal);
+      render();
+
+      showToast(
+        item.name +
+        "を削除しました"
+      );
+    }
+
+    form.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+
+        const editingId =
+          document.getElementById(
+            "editingId"
+          ).value;
+
+        const name =
+          document.getElementById(
+            "name"
+          ).value.trim();
+
+        const price =
+          Number(
+            document.getElementById(
+              "price"
+            ).value
+          );
+
+        const renewalDate =
+          document.getElementById(
+            "renewalDate"
+          ).value;
+
+        const hasTrial =
+          document.getElementById(
+            "hasTrial"
+          ).checked;
+
+        const trialEndDate =
+          document.getElementById(
+            "trialEndDate"
+          ).value;
+
+        if (
+          !name ||
+          !Number.isFinite(price) ||
+          price <= 0 ||
+          !renewalDate
+        ) {
+          alert(
+            "サービス名、料金、更新日を確認してください。"
+          );
+
+          return;
+        }
+
+        if (
+          hasTrial &&
+          !trialEndDate
+        ) {
+          alert(
+            "無料期間終了日を入力してください。"
+          );
+
+          return;
+        }
+
+        const data = {
+          name,
+          price,
+          cycle:
+            document.getElementById(
+              "cycle"
+            ).value,
+          renewalDate,
+          icon:
+            document.getElementById(
+              "icon"
+            ).value.trim() ||
+            getDefaultIcon(name),
+          category:
+            document.getElementById(
+              "category"
+            ).value,
+          cancelUrl:
+            document.getElementById(
+              "cancelUrl"
+            ).value.trim(),
+          hasTrial,
+          trialEndDate:
+            hasTrial
+              ? trialEndDate
+              : ""
+        };
+
+        if (editingId) {
+          const item =
+            subscriptions.find(
+              subscription =>
+                subscription.id ===
+                editingId
+            );
+
+          if (item) {
+            Object.assign(
+              item,
+              data,
+              {
+                updatedAt:
+                  new Date()
+                    .toISOString()
+              }
+            );
+          }
+        } else {
+          subscriptions.push({
+            id: createId(),
+            ...data,
+            cancelled: false,
+            createdAt:
+              new Date()
+                .toISOString()
+          });
+        }
+
+        saveSubscriptions();
+        closeModal(formModal);
+        render();
+
+        showToast(
+          editingId
+            ? name +
+              "を更新しました"
+            : name +
+              "を登録しました"
+        );
+      }
+    );
+
+    document.getElementById(
+      "addButton"
+    ).addEventListener(
+      "click",
+      openAddForm
+    );
+
+    document.getElementById(
+      "closeFormButton"
+    ).addEventListener(
+      "click",
+      () => {
+        closeModal(formModal);
+      }
+    );
+
+    document.getElementById(
+      "closeDetailButton"
+    ).addEventListener(
+      "click",
+      () => {
+        closeModal(detailModal);
+      }
+    );
+
+    document.getElementById(
+      "editDetailButton"
+    ).addEventListener(
+      "click",
+      () => {
+        if (selectedId) {
+          openEditForm(selectedId);
+        }
+      }
+    );
+
+    document.getElementById(
+      "hasTrial"
+    ).addEventListener(
+      "change",
+      event => {
+        document.getElementById(
+          "trialEndWrap"
+        ).hidden =
+          !event.target.checked;
+      }
+    );
+
+    document.getElementById(
+      "sortOrder"
+    ).addEventListener(
+      "change",
+      event => {
+        settings.sortOrder =
+          event.target.value;
+
+        saveSettings();
+        renderList();
+      }
+    );
+
+    document.getElementById(
+      "previousMonthButton"
+    ).addEventListener(
+      "click",
+      () => {
+        calendarMonth -= 1;
+
+        if (calendarMonth < 0) {
+          calendarMonth = 11;
+          calendarYear -= 1;
+        }
+
+        renderCalendar();
+      }
+    );
+
+    document.getElementById(
+      "nextMonthButton"
+    ).addEventListener(
+      "click",
+      () => {
+        calendarMonth += 1;
+
+        if (calendarMonth > 11) {
+          calendarMonth = 0;
+          calendarYear += 1;
+        }
+
+        renderCalendar();
+      }
+    );
+
+    [
+      formModal,
+      detailModal
+    ].forEach(modal => {
+      modal.addEventListener(
+        "click",
+        event => {
+          if (event.target === modal) {
+            closeModal(modal);
+          }
+        }
+      );
+    });
+
+    document.getElementById(
+      "sortOrder"
+    ).value =
+      settings.sortOrder;
+
+    resetForm();
+    render();
+  </script>
+</body>
+</html>
