@@ -1,1 +1,1117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="迷っているサブスクを、後悔なく整理する決断支援アプリ"
+  >
+
+  <meta name="theme-color" content="#5b4cf0">
+
+  <title>KIMERU v9</title>
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-block">
+        <span class="version-badge">
+          KIMERU v9
+        </span>
+
+        <h1 class="brand-title">
+          KIMERU
+        </h1>
+
+        <p class="brand-copy">
+          今日、ひとつ決める。
+        </p>
+      </div>
+
+      <button
+        id="openSettingsButton"
+        class="header-action-button"
+        type="button"
+        aria-label="設定を開く"
+      >
+        ⚙
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section
+      id="todayView"
+      class="app-view active"
+      data-view="today"
+    >
+      <div class="container">
+        <section class="today-card">
+          <div class="today-eyebrow">
+            今日はこれだけ
+          </div>
+
+          <div
+            id="todayDecisionContent"
+            class="today-decision-content"
+          >
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                ✓
+              </div>
+
+              <h2 class="empty-state-title">
+                今日決めることはありません
+              </h2>
+
+              <p class="empty-state-text">
+                右下の＋からサービスを登録してください。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="summary-grid">
+          <article class="summary-card">
+            <span class="summary-label">
+              今月の支払い
+            </span>
+
+            <strong
+              id="monthlyTotal"
+              class="summary-value"
+            >
+              ¥0
+            </strong>
+          </article>
+
+          <article class="summary-card">
+            <span class="summary-label">
+              年間の支払い
+            </span>
+
+            <strong
+              id="yearlyTotal"
+              class="summary-value"
+            >
+              ¥0
+            </strong>
+          </article>
+
+          <article class="summary-card">
+            <span class="summary-label">
+              保留中
+            </span>
+
+            <strong
+              id="holdingCount"
+              class="summary-value"
+            >
+              0件
+            </strong>
+          </article>
+
+          <article class="summary-card success-card">
+            <span class="summary-label">
+              整理できた金額
+            </span>
+
+            <strong
+              id="graduatedTotal"
+              class="summary-value success-text"
+            >
+              ¥0
+            </strong>
+          </article>
+        </section>
+
+        <section class="section-card">
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                検討中
+              </span>
+
+              <h2 class="section-title">
+                次に考えるサービス
+              </h2>
+            </div>
+
+            <button
+              class="section-link-button"
+              type="button"
+              data-navigate="considering"
+            >
+              すべて見る
+            </button>
+          </div>
+
+          <div
+            id="todayConsideringList"
+            class="compact-list"
+          ></div>
+        </section>
+
+        <section class="section-card">
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                保留中
+              </span>
+
+              <h2 class="section-title">
+                再判断が近いもの
+              </h2>
+            </div>
+
+            <button
+              class="section-link-button"
+              type="button"
+              data-navigate="holding"
+            >
+              すべて見る
+            </button>
+          </div>
+
+          <div
+            id="todayHoldingList"
+            class="compact-list"
+          ></div>
+        </section>
+
+        <section class="section-card">
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                決断記録
+              </span>
+
+              <h2 class="section-title">
+                最近の履歴
+              </h2>
+            </div>
+          </div>
+
+          <div
+            id="recentTimeline"
+            class="timeline-list"
+          ></div>
+        </section>
+      </div>
+    </section>
+
+    <section
+      id="consideringView"
+      class="app-view"
+      data-view="considering"
+      hidden
+    >
+      <div class="container">
+        <div class="page-heading">
+          <div>
+            <span class="section-eyebrow">
+              まだ決めていないもの
+            </span>
+
+            <h2 class="page-title">
+              検討中
+            </h2>
+
+            <p class="page-description">
+              必要かどうか、これから考えるサービスです。
+            </p>
+          </div>
+
+          <button
+            id="addConsideringButton"
+            class="page-add-button"
+            type="button"
+            aria-label="検討中のサービスを追加"
+          >
+            ＋
+          </button>
+        </div>
+
+        <div
+          id="consideringList"
+          class="service-list"
+        ></div>
+      </div>
+    </section>
+
+    <section
+      id="essentialView"
+      class="app-view"
+      data-view="essential"
+      hidden
+    >
+      <div class="container">
+        <div class="page-heading">
+          <div>
+            <span class="section-eyebrow">
+              生活や仕事に必要
+            </span>
+
+            <h2 class="page-title">
+              必要
+            </h2>
+
+            <p class="page-description">
+              見直し対象には表示しません。
+            </p>
+          </div>
+
+          <button
+            id="addEssentialButton"
+            class="page-add-button"
+            type="button"
+            aria-label="必要なサービスを追加"
+          >
+            ＋
+          </button>
+        </div>
+
+        <section class="section-card total-card">
+          <span class="summary-label">
+            必要なサービスの年間合計
+          </span>
+
+          <strong
+            id="essentialYearlyTotal"
+            class="large-total"
+          >
+            ¥0
+          </strong>
+        </section>
+
+        <div
+          id="essentialList"
+          class="service-list"
+        ></div>
+      </div>
+    </section>
+
+    <section
+      id="holdingView"
+      class="app-view"
+      data-view="holding"
+      hidden
+    >
+      <div class="container">
+        <div class="page-heading">
+          <div>
+            <span class="section-eyebrow">
+              今は決めない
+            </span>
+
+            <h2 class="page-title">
+              あとで
+            </h2>
+
+            <p class="page-description">
+              保留期限になったら、もう一度確認します。
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="holdingList"
+          class="service-list"
+        ></div>
+      </div>
+    </section>
+
+    <section
+      id="graduatedView"
+      class="app-view"
+      data-view="graduated"
+      hidden
+    >
+      <div class="container">
+        <div class="page-heading">
+          <div>
+            <span class="section-eyebrow">
+              手放したもの
+            </span>
+
+            <h2 class="page-title">
+              卒業
+            </h2>
+
+            <p class="page-description">
+              実際に解約を完了したサービスです。
+            </p>
+          </div>
+        </div>
+
+        <section class="section-card achievement-card">
+          <div class="achievement-icon">
+            🎓
+          </div>
+
+          <div>
+            <span class="summary-label">
+              年間で整理できた金額
+            </span>
+
+            <strong
+              id="graduatedYearlyTotal"
+              class="large-total success-text"
+            >
+              ¥0
+            </strong>
+          </div>
+        </section>
+
+        <section class="achievement-grid">
+          <article class="achievement-item">
+            <span class="achievement-label">
+              卒業した数
+            </span>
+
+            <strong
+              id="graduatedCount"
+              class="achievement-value"
+            >
+              0件
+            </strong>
+          </article>
+
+          <article class="achievement-item">
+            <span class="achievement-label">
+              決断した回数
+            </span>
+
+            <strong
+              id="decisionCount"
+              class="achievement-value"
+            >
+              0回
+            </strong>
+          </article>
+        </section>
+
+        <div
+          id="graduatedList"
+          class="service-list"
+        ></div>
+      </div>
+    </section>
+  </main>
+
+  <nav
+    class="bottom-navigation"
+    aria-label="メインナビゲーション"
+  >
+    <button
+      class="nav-button active"
+      type="button"
+      data-view-target="today"
+    >
+      <span class="nav-icon">
+        ◎
+      </span>
+
+      <span class="nav-label">
+        今日
+      </span>
+    </button>
+
+    <button
+      class="nav-button"
+      type="button"
+      data-view-target="considering"
+    >
+      <span class="nav-icon">
+        ?
+      </span>
+
+      <span class="nav-label">
+        検討
+      </span>
+    </button>
+
+    <button
+      class="nav-button"
+      type="button"
+      data-view-target="essential"
+    >
+      <span class="nav-icon">
+        🔒
+      </span>
+
+      <span class="nav-label">
+        必要
+      </span>
+    </button>
+
+    <button
+      class="nav-button"
+      type="button"
+      data-view-target="holding"
+    >
+      <span class="nav-icon">
+        ⏳
+      </span>
+
+      <span class="nav-label">
+        あとで
+      </span>
+    </button>
+
+    <button
+      class="nav-button"
+      type="button"
+      data-view-target="graduated"
+    >
+      <span class="nav-icon">
+        ✓
+      </span>
+
+      <span class="nav-label">
+        卒業
+      </span>
+    </button>
+  </nav>
+
+  <button
+    id="floatingAddButton"
+    class="floating-add-button"
+    type="button"
+    aria-label="サービスを追加"
+  >
+    ＋
+  </button>
+
+  <div
+    id="serviceFormModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section
+      class="modal-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="serviceFormTitle"
+    >
+      <div class="modal-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <span class="section-eyebrow">
+            サービス情報
+          </span>
+
+          <h2
+            id="serviceFormTitle"
+            class="modal-title"
+          >
+            サービスを追加
+          </h2>
+        </div>
+
+        <button
+          id="closeServiceFormButton"
+          class="close-button"
+          type="button"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+      </div>
+
+      <form
+        id="serviceForm"
+        novalidate
+      >
+        <input
+          id="serviceId"
+          type="hidden"
+        >
+
+        <div class="field-group">
+          <label for="serviceName">
+            サービス名
+          </label>
+
+          <input
+            id="serviceName"
+            type="text"
+            maxlength="50"
+            placeholder="例：Netflix"
+            autocomplete="off"
+            required
+          >
+
+          <p
+            id="serviceNameError"
+            class="field-error"
+            hidden
+          ></p>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-group">
+            <label for="servicePrice">
+              料金
+            </label>
+
+            <input
+              id="servicePrice"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              placeholder="1490"
+              required
+            >
+
+            <p
+              id="servicePriceError"
+              class="field-error"
+              hidden
+            ></p>
+          </div>
+
+          <div class="field-group">
+            <label for="serviceCycle">
+              支払い周期
+            </label>
+
+            <select id="serviceCycle">
+              <option value="monthly">
+                月額
+              </option>
+
+              <option value="yearly">
+                年額
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="serviceRenewalDate">
+            次回更新日
+          </label>
+
+          <input
+            id="serviceRenewalDate"
+            type="date"
+            required
+          >
+
+          <p
+            id="serviceRenewalDateError"
+            class="field-error"
+            hidden
+          ></p>
+        </div>
+
+        <details class="advanced-settings">
+          <summary>
+            アイコン・カテゴリー・解約URL
+          </summary>
+
+          <div class="advanced-content">
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="serviceIcon">
+                  アイコン
+                </label>
+
+                <input
+                  id="serviceIcon"
+                  type="text"
+                  maxlength="12"
+                  placeholder="🎬"
+                >
+              </div>
+
+              <div class="field-group">
+                <label for="serviceCategory">
+                  カテゴリー
+                </label>
+
+                <select id="serviceCategory">
+                  <option value="動画">
+                    動画
+                  </option>
+
+                  <option value="音楽">
+                    音楽
+                  </option>
+
+                  <option value="AI">
+                    AI
+                  </option>
+
+                  <option value="仕事">
+                    仕事
+                  </option>
+
+                  <option value="ゲーム">
+                    ゲーム
+                  </option>
+
+                  <option value="クラウド">
+                    クラウド
+                  </option>
+
+                  <option value="買い物">
+                    買い物
+                  </option>
+
+                  <option
+                    value="その他"
+                    selected
+                  >
+                    その他
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="serviceCancelUrl">
+                解約ページURL
+              </label>
+
+              <input
+                id="serviceCancelUrl"
+                type="url"
+                placeholder="https://..."
+                inputmode="url"
+              >
+            </div>
+          </div>
+        </details>
+
+        <div class="modal-actions">
+          <button
+            id="cancelServiceFormButton"
+            class="secondary-button"
+            type="button"
+          >
+            キャンセル
+          </button>
+
+          <button
+            id="saveServiceButton"
+            class="primary-button"
+            type="submit"
+          >
+            保存する
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div
+    id="decisionModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section
+      class="modal-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="decisionTitle"
+    >
+      <div class="modal-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <span class="section-eyebrow">
+            どうしますか？
+          </span>
+
+          <h2
+            id="decisionTitle"
+            class="modal-title"
+          >
+            サービスを決める
+          </h2>
+        </div>
+
+        <button
+          id="closeDecisionButton"
+          class="close-button"
+          type="button"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+      </div>
+
+      <div id="decisionContent"></div>
+
+      <div class="decision-option-list">
+        <button
+          class="decision-option-button essential-option"
+          type="button"
+          data-decision="essential"
+        >
+          <span class="decision-option-icon">
+            🔒
+          </span>
+
+          <span class="decision-option-text">
+            <strong>
+              必要
+            </strong>
+
+            <small>
+              今後は見直し対象にしない
+            </small>
+          </span>
+        </button>
+
+        <button
+          class="decision-option-button considering-option"
+          type="button"
+          data-decision="considering"
+        >
+          <span class="decision-option-icon">
+            ?
+          </span>
+
+          <span class="decision-option-text">
+            <strong>
+              検討中
+            </strong>
+
+            <small>
+              引き続き考える
+            </small>
+          </span>
+        </button>
+
+        <button
+          class="decision-option-button holding-option"
+          type="button"
+          data-decision="holding"
+        >
+          <span class="decision-option-icon">
+            ⏳
+          </span>
+
+          <span class="decision-option-text">
+            <strong>
+              あとで
+            </strong>
+
+            <small>
+              期限を決めて再判断する
+            </small>
+          </span>
+        </button>
+
+        <button
+          class="decision-option-button graduated-option"
+          type="button"
+          data-decision="graduated"
+        >
+          <span class="decision-option-icon">
+            🎓
+          </span>
+
+          <span class="decision-option-text">
+            <strong>
+              卒業
+            </strong>
+
+            <small>
+              解約完了後に記録する
+            </small>
+          </span>
+        </button>
+      </div>
+
+      <div class="detail-actions">
+        <button
+          id="editSelectedServiceButton"
+          class="secondary-button"
+          type="button"
+        >
+          編集
+        </button>
+
+        <button
+          id="deleteSelectedServiceButton"
+          class="danger-button"
+          type="button"
+        >
+          削除
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="holdModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section
+      class="modal-sheet small-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="holdTitle"
+    >
+      <div class="modal-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <span class="section-eyebrow">
+            今は決めない
+          </span>
+
+          <h2
+            id="holdTitle"
+            class="modal-title"
+          >
+            いつ再判断しますか？
+          </h2>
+        </div>
+
+        <button
+          id="closeHoldButton"
+          class="close-button"
+          type="button"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="hold-option-list">
+        <button
+          class="hold-option-button"
+          type="button"
+          data-hold-days="7"
+        >
+          <strong>
+            7日後
+          </strong>
+
+          <span>
+            近いうちに確認する
+          </span>
+        </button>
+
+        <button
+          class="hold-option-button"
+          type="button"
+          data-hold-days="30"
+        >
+          <strong>
+            30日後
+          </strong>
+
+          <span>
+            1か月だけ様子を見る
+          </span>
+        </button>
+
+        <button
+          class="hold-option-button"
+          type="button"
+          data-hold-days="90"
+        >
+          <strong>
+            90日後
+          </strong>
+
+          <span>
+            しばらく利用状況を見る
+          </span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="graduationConfirmModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section
+      class="modal-sheet small-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="graduationConfirmTitle"
+    >
+      <div class="modal-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <span class="section-eyebrow">
+            卒業の確認
+          </span>
+
+          <h2
+            id="graduationConfirmTitle"
+            class="modal-title"
+          >
+            解約手続きは完了しましたか？
+          </h2>
+        </div>
+
+        <button
+          id="closeGraduationConfirmButton"
+          class="close-button"
+          type="button"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="modal-description">
+        実際に解約が完了した場合だけ、節約実績へ加算します。
+      </p>
+
+      <div class="modal-actions">
+        <button
+          id="graduationNotCompletedButton"
+          class="secondary-button"
+          type="button"
+        >
+          まだ
+        </button>
+
+        <button
+          id="graduationCompletedButton"
+          class="success-button"
+          type="button"
+        >
+          完了した
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="settingsModal"
+    class="modal-backdrop"
+    aria-hidden="true"
+  >
+    <section
+      class="modal-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settingsTitle"
+    >
+      <div class="modal-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <span class="section-eyebrow">
+            KIMERU
+          </span>
+
+          <h2
+            id="settingsTitle"
+            class="modal-title"
+          >
+            設定
+          </h2>
+        </div>
+
+        <button
+          id="closeSettingsButton"
+          class="close-button"
+          type="button"
+          aria-label="閉じる"
+        >
+          ×
+        </button>
+      </div>
+
+      <section class="settings-section">
+        <h3 class="settings-section-title">
+          バックアップ
+        </h3>
+
+        <p class="settings-description">
+          スマホの変更やブラウザデータ削除に備えて、登録内容を保存できます。
+        </p>
+
+        <button
+          id="exportDataButton"
+          class="settings-row-button"
+          type="button"
+        >
+          <span>
+            データを書き出す
+          </span>
+
+          <span>
+            ›
+          </span>
+        </button>
+
+        <button
+          id="importDataButton"
+          class="settings-row-button"
+          type="button"
+        >
+          <span>
+            データを読み込む
+          </span>
+
+          <span>
+            ›
+          </span>
+        </button>
+
+        <input
+          id="importFileInput"
+          type="file"
+          accept="application/json"
+          hidden
+        >
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-section-title">
+          アプリ情報
+        </h3>
+
+        <div class="settings-info-card">
+          <strong>
+            KIMERU v9
+          </strong>
+
+          <p>
+            サブスクを必要・検討中・あとで・卒業に整理するアプリです。
+          </p>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+  <script
+    type="module"
+    src="./js/app.js"
+  ></script>
+</body>
+</html>
